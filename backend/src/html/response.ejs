@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Safety Check</title>
+</head>
+<body>
+  <% if (http) { %>
+    <h2 style="color: red;">
+      ⚠️ Warning: This website uses HTTP instead of HTTPS.
+    </h2>
+    <p>
+      We strongly recommend avoiding this site unless you're absolutely sure it's safe and you're not entering any confidential information.
+    </p>
+    <a href="<%= redirectURL %>" target="_blank">🔗 Visit Anyway</a>
+  <% } else { %>
+    <h2>🔍 Scan Result</h2>
+    <p><strong>Status:</strong> <%= status %></p>
+
+    <% if (typeof score !== 'undefined') { %>
+      <p><strong>Security Score:</strong> <%= score %>%</p>
+    <% } %>
+
+    <% if (missingHeaders && missingHeaders.length > 0) { %>
+      <p><strong>Missing Headers:</strong> <%= missingHeaders.join(', ') %></p>
+    <% } %>
+
+    <a href="<%= redirectURL %>" target="_blank">🔗 Visit Site</a>
+  <% } %>
+
+  <br><br>
+  <a href="/">⬅️ Back to Proxy</a>
+</body>
+</html>
