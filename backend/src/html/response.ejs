@@ -18,7 +18,7 @@
     <h2>🔍 Scan Result</h2>
     <p><strong>Status:</strong> <%= status %></p>
 
-    <% if (typeof score !== 'undefined') { %>
+    <% if (score !== null) { %>
       <p><strong>Security Score:</strong> <%= score %>%</p>
     <% } %>
 

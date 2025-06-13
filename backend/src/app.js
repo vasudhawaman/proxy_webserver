@@ -139,6 +139,9 @@ function sendReqToGlobalServer(res, targetedURL) {
   if (parsedProtocol === 'http') {
     return renderEjs(res, {
       http: true,
+      status:null,
+      score:null,
+      missingHeaders:null,
       redirectURL: targetedURL,
     });
   }
@@ -163,6 +166,7 @@ function sendReqToGlobalServer(res, targetedURL) {
       const result = checkSecurityHeaders(serverRes);
 
       return renderEjs(res, {
+        http:false,
         status: result.message,
         score: result.score,
         missingHeaders: result.missingHeaders,
@@ -215,7 +219,10 @@ function postURLRoute(req, res) {
     try {
       if (!(await useGoogleAPI(targetedURL))) {
         return renderEjs(res, {
+          http:false,
           status: 'Google marked this site as unsafe to browse.',
+          score : null,
+          missingHeaders:null,
           redirectURL: targetedURL,
         });
       }
@@ -253,6 +260,6 @@ const proxy = http.createServer((req, res) => {
   }
 });
 
-proxy.listen(3001, () => {
-  console.log('Proxy server listening on port 3001');
+proxy.listen(9001, () => {
+  console.log('Proxy server listening on port 9001');
 });
