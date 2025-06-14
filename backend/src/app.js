@@ -220,7 +220,7 @@ function postURLRoute(req, res) {
       if (!(await useGoogleAPI(targetedURL))) {
         return renderEjs(res, {
           http:false,
-          status: 'Google marked this site as unsafe to browse.',
+          status: `⚠️ Caution: Google marked this site as unsafe to browse. We don't recommend you to browse this website.`,
           score : null,
           missingHeaders:null,
           redirectURL: targetedURL,
