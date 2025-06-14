@@ -8,28 +8,28 @@
 <body>
   <% if (http) { %>
     <h2 style="color: red;">
-      ⚠️ Warning: This website uses HTTP instead of HTTPS.
+      ⚠️ Caution: This website is served over HTTP, not HTTPS.
     </h2>
     <p>
-      We strongly recommend avoiding this site unless you're absolutely sure it's safe and you're not entering any confidential information.
+      This means the connection is not encrypted, and any information you enter may be intercepted. Proceed only if you're confident about the site and aren't submitting sensitive data.
     </p>
-    <a href="<%= redirectURL %>" target="_blank">🔗 Visit Anyway</a>
+    <a href="<%= redirectURL %>" target="_blank">🔗 Visit Anyway (Unsafe)</a>
   <% } else { %>
-    <h2>🔍 Scan Result</h2>
-    <p><strong>Status:</strong> <%= status %></p>
+    <h2>🔍 Website Scan Results</h2>
+    <p><strong>Safety Status:</strong> <%= status %></p>
 
     <% if (score !== null) { %>
-      <p><strong>Security Score:</strong> <%= score %>%</p>
+      <p><strong>Security Headers Score:</strong> <%= score %>% — based on presence of recommended headers</p>
     <% } %>
 
     <% if (missingHeaders && missingHeaders.length > 0) { %>
-      <p><strong>Missing Headers:</strong> <%= missingHeaders.join(', ') %></p>
+      <p><strong>Missing Security Headers:</strong> <%= missingHeaders.join(', ') %></p>
     <% } %>
 
-    <a href="<%= redirectURL %>" target="_blank">🔗 Visit Site</a>
+    <a href="<%= redirectURL %>" target="_blank">🔗 Proceed to Site</a>
   <% } %>
 
   <br><br>
-  <a href="/">⬅️ Back to Proxy</a>
+  <a href="/">⬅️ Return to Homepage</a>
 </body>
 </html>
