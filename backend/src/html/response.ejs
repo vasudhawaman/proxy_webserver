@@ -20,13 +20,13 @@
 
     <% if (score !== null) { %>
       <p><strong>Security Headers Score:</strong> <%= score %>% — based on presence of recommended headers</p>
-    <% } %>
-
-    <% if (missingHeaders && missingHeaders.length > 0) { %>
-      <p><strong>Missing Security Headers:</strong> <%= missingHeaders.join(', ') %></p>
-    <% } %>
-
-    <a href="<%= redirectURL %>" target="_blank">🔗 Proceed to Site</a>
+      
+      <% if (missingHeaders && missingHeaders.length > 0) { %>
+        <p><strong>Missing Security Headers:</strong> <%= missingHeaders.join(', ') %></p>
+        <% } %>
+        
+        <% } %>
+    <a href="<%= redirectURL %>" target="_blank">🔗  Visit Anyway</a>
   <% } %>
 
   <br><br>
