@@ -8,6 +8,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
     <style>
       * {
         margin: 0;
@@ -19,7 +20,7 @@
       body {
         display: flex;
         min-height: 100vh;
-        background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.8)),
+        background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7)),
           url('../frontend/assets/images/bg.jpg') center;
         background-size: cover;
         background-repeat: no-repeat;
@@ -94,12 +95,14 @@
         margin-left: 200px;
       }
 
-      header.head h2 {
-        font-family: 'Times New Roman', serif;
-        font-size: 3vw;
-        text-align: center;
-        text-shadow: 4px 3px 5px rgb(239, 111, 32);
-      }
+      .head h2 {
+      font-family: 'Montserrat', serif;
+      font-weight: 1000;
+      font-size: 3vw;
+      text-align: center;
+      text-shadow: 0px 1px 0px rgba(237, 207, 189, 0.3), 0px 2px 0px rgba(14, 11, 0, 0.915), 0px 3px 0px rgba(249, 1, 1, 0.3), 0px 5px 20px rgb(50 44 181 / 88%), 0px 5px 20px #008cff, 0px 4.8px 0px rgba(255, 247, 241, 0.5);
+      
+    }
 
       .text {
         display: flex;
@@ -125,6 +128,11 @@
         border: none;
         cursor: pointer;
       }
+
+      .text button:hover {
+      background: linear-gradient(to bottom right, #1f02fc, #bc74c6);
+      ;
+    }
 
       #searchbutton svg {
         height: 15px;
@@ -208,7 +216,7 @@
 
     <div class="main-content">
       <header class="head">
-        <h2>🔒 Welcome to Web Safety Checker</h2>
+        <h2>🔒 Web Safety Checker</h2>
       </header>
       <form
         class="text"
