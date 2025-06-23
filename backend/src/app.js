@@ -5,20 +5,27 @@ const https = require('https');
 const ejs = require('ejs');
 
 //currently our server, becuse of globally defined userAgent, cant handle multiple users at once
+//by setting this userAgent our prozy can mimic the browser, because without it the server will treat our proxy as a plain nodejs server
+//due to which it doesnt respond with all the security headers that a actuall browser needs
 let userAgent = '';
 
 function renderFile(res, filePath, errMsg) {
+  //reading file
   fs.readFile(path.join(filePath), (err, data) => {
     if (err) {
       res.writeHead(500);
       return res.end(errMsg);
     }
+
+    //sending file
     res.writeHead(200);
     return res.end(data);
   });
 }
 
 function renderEjs(res, valueObj) {
+  //this function is for rendering response.ejs: it is dynamic wrt reponse of server i.e its content chnages wrt proxy reposne thats why..
+  //... we need ejs instead of html
   ejs.renderFile(
     path.join(__dirname, '..', 'src', 'html', 'response.ejs'),
     valueObj,
@@ -76,7 +83,7 @@ function useGoogleAPI(targetedURL) {
       googleRes.on('end', () => {
         try {
           const result = JSON.parse(body);
-          resolve(Object.keys(result).length === 0); // true if safe
+          resolve(Object.keys(result).length === 0); // true if safe, false if unsafe
         } catch (err) {
           reject(new Error('Failed to parse Google API response'));
         }
@@ -93,6 +100,8 @@ function useGoogleAPI(targetedURL) {
 }
 
 function checkSecurityHeaders(httpsRes) {
+
+  //the header we have to check upon
   const securityHeadersArr = [
     'x-content-type-options',
     'content-security-policy',
@@ -137,11 +146,13 @@ function sendReqToGlobalServer(res, targetedURL) {
   const parsedProtocol = protocol.replace(':', '');
 
   if (parsedProtocol === 'http') {
+
+    //if the website uses http simply repond with unsafe and finish checking : http websites are considered unsafe 
     return renderEjs(res, {
       http: true,
-      status:null,
-      score:null,
-      missingHeaders:null,
+      status: null,
+      score: null,
+      missingHeaders: null,
       redirectURL: targetedURL,
     });
   }
@@ -153,8 +164,11 @@ function sendReqToGlobalServer(res, targetedURL) {
     path: '/',
     method: 'GET',
     headers: {
+      //see here we set the userAgent to mimic our proxy as a browser
       'User-Agent': userAgent,
     },
+    //to check for ssl certificate 
+    rejectUnauthorized: true,
   };
 
   const serverReq = scheme.request(options, (serverRes) => {
@@ -166,7 +180,7 @@ function sendReqToGlobalServer(res, targetedURL) {
       const result = checkSecurityHeaders(serverRes);
 
       return renderEjs(res, {
-        http:false,
+        http: false,
         status: result.message,
         score: result.score,
         missingHeaders: result.missingHeaders,
@@ -191,8 +205,10 @@ function sendReqToGlobalServer(res, targetedURL) {
 }
 
 function getHomepageRoute(req, res) {
+  //when the user makes request its header contains the userAgent for the user's browser, we require it so we are extracting this
   userAgent = req.headers['user-agent'];
 
+  //send homepage (index.html)
   renderFile(
     res,
     path.join(__dirname, '..', '..', 'frontend/index.html'),
@@ -200,16 +216,18 @@ function getHomepageRoute(req, res) {
   );
 }
 
-function postURLRoute(req, res) {
+function checkSafety(req, res) {
   let body = '';
 
   req.on('data', (chunk) => {
     body += chunk.toString();
   });
 
+  //now body have all the data that was sent in post req, but still we need to extract ip url from it
   req.on('end', async () => {
     const params = new URLSearchParams(body);
     const targetedURL = params.get('ipURL');
+    // this targetedURL have the the url that user entered in the correct form
 
     if (!targetedURL) {
       res.writeHead(400);
@@ -218,15 +236,18 @@ function postURLRoute(req, res) {
 
     try {
       if (!(await useGoogleAPI(targetedURL))) {
+
+        //if the website marked undafe in google api just finish the checking and resond with unsafe. We are here trusting google
         return renderEjs(res, {
-          http:false,
+          http: false,
           status: `⚠️ Caution: Google marked this site as unsafe to browse. We don't recommend you to browse this website.`,
-          score : null,
-          missingHeaders:null,
+          score: null,
+          missingHeaders: null,
           redirectURL: targetedURL,
         });
       }
 
+      //sending request to global server only if the website is safe in google api
       sendReqToGlobalServer(res, targetedURL);
     } catch (err) {
       res.writeHead(500);
@@ -241,11 +262,14 @@ function postURLRoute(req, res) {
 }
 
 const proxy = http.createServer((req, res) => {
+  //when user visits the website for the first time : prviding the homepage
   if (req.url === '/' && req.method === 'GET') {
     getHomepageRoute(req, res);
   } else if (req.url === '/isSafe' && req.method === 'POST') {
-    postURLRoute(req, res);
+    // this is when user submits the form while filling it with the url
+    checkSafety(req, res);
   } else if (
+    // this path is for rendering bg image on homepage
     req.url === '/frontend/assets/images/bg.jpg' &&
     req.method === 'GET'
   ) {
