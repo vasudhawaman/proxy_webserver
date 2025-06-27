@@ -64,7 +64,7 @@ A Node.js-based proxy server that checks if a website is safe to visit. It integ
        - `X-XSS-Protection`
        - `X-Content-Type-Options`
 
-5. Based on how many of these headers are present, the server calculates a **security score** and returns a user-friendly, styled result page with:
+5. Based on how many of these headers are present, the server calculates a **security score** and returns a result page with:
    - The calculated score
    - A safety message
    - A list of missing headers (if any)
