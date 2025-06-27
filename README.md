@@ -87,5 +87,7 @@ A Node.js-based proxy server that checks if a website is safe to visit. It integ
 ## 🚀 Future Targets
 
 1. Enhance security by parsing incoming HTML and JavaScript to detect suspicious content such as iframes, phishing scripts, or embedded threats.
-2. Implement a more robust SSL/TLS certificate validation mechanism.
-3. Improve the design and responsiveness of the dynamic response page for a better user experience.
+2. Implement a more robust SSL/TLS certificate validation mechanism, including expiry checks and certificate chain analysis.
+3. Improve the design, responsiveness, and overall user experience of the dynamic result page.
+4. Add logging and history tracking to maintain records of inspected URLs, timestamps, and safety assessments for auditing or reporting purposes.
+
