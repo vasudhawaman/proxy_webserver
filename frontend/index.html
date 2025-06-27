@@ -8,191 +8,11 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      }
-
-      body {
-        display: flex;
-        min-height: 100vh;
-        background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7)),
-          url('../frontend/assets/images/bg.jpg') center;
-        background-size: cover;
-        background-repeat: no-repeat;
-        color: white;
-      }
-
-      nav.sidebar {
-        width: 60px;
-        height: 100%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        overflow-x: hidden;
-        white-space: nowrap;
-        transition: width 0.3s ease;
-        padding-top: 60px;
-      }
-
-      nav.sidebar:hover {
-        width: 200px;
-      }
-
-      nav.sidebar ul {
-        list-style: none;
-      }
-
-      nav.sidebar li {
-        display: flex;
-        align-items: center;
-      }
-
-      nav.sidebar li a {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 15px;
-        color: white;
-        text-decoration: none;
-        transition: background 0.2s;
-      }
-
-      nav.sidebar li a i {
-        width: 20px;
-        text-align: center;
-        margin-right: 10px;
-        font-size: 18px;
-      }
-
-      nav.sidebar li a span {
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-
-      nav.sidebar:hover li a span {
-        opacity: 1;
-      }
-
-      nav.sidebar li a:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      .main-content {
-        margin-left: 60px;
-        padding: 40px 20px;
-        transition: margin-left 0.3s ease;
-        width: 100%;
-      }
-
-      nav.sidebar:hover ~ .main-content {
-        margin-left: 200px;
-      }
-
-      .head h2 {
-      font-family: 'Montserrat', serif;
-      font-weight: 1000;
-      font-size: 3vw;
-      text-align: center;
-      text-shadow: 0px 1px 0px rgba(237, 207, 189, 0.3), 0px 2px 0px rgba(14, 11, 0, 0.915), 0px 3px 0px rgba(249, 1, 1, 0.3), 0px 5px 20px rgb(50 44 181 / 88%), 0px 5px 20px #008cff, 0px 4.8px 0px rgba(255, 247, 241, 0.5);
-      
-    }
-
-      .text {
-        display: flex;
-        justify-content: center;
-        background: white;
-        border-radius: 4px;
-        max-width: 600px;
-        margin: 30px auto;
-        overflow: hidden;
-      }
-
-      .text input {
-        flex: 1;
-        margin: 2px;
-        padding: 10px;
-        border: none;
-      }
-
-      .text button {
-        background: linear-gradient(to bottom right, #008cff, #e100ff);
-        color: white;
-        padding: 15px 30px;
-        border: none;
-        cursor: pointer;
-      }
-
-      .text button:hover {
-      background: linear-gradient(to bottom right, #1f02fc, #bc74c6);
-      ;
-    }
-
-      #searchbutton svg {
-        height: 15px;
-      }
-
-      section {
-        padding: 40px;
-        margin-bottom: 30px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-      }
-
-      section h3 {
-        margin-bottom: 15px;
-      }
-
-      #faq .faq-item {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      }
-
-      .faq-question {
-        width: 100%;
-        background: none;
-        border: none;
-        padding: 15px;
-        color: white;
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        position: relative;
-      }
-
-      .faq-question i {
-        margin-right: 10px;
-        width: 20px;
-        text-align: center;
-      }
-
-      .faq-question .arrow {
-        margin-left: auto;
-        transition: transform 0.3s ease;
-      }
-
-      .faq-question.active .arrow {
-        transform: rotate(180deg);
-      }
-
-      .faq-answer {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-        padding: 0 15px;
-        background: rgba(255, 255, 255, 0.05);
-      }
-
-      .faq-answer p {
-        margin: 10px 0;
-      }
-    </style>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Montserrat"
+    />
+    <link rel="stylesheet" href="/frontend/assets/css/style.css" />
   </head>
 
   <body>
@@ -224,7 +44,13 @@
         method="post"
         onsubmit="checkURL(); return false;"
       >
-        <input id="inputURL" type="url" name="ipURL" placeholder="Enter the URL (Please ensure the correct domain name before checking)" required />
+        <input
+          id="inputURL"
+          type="url"
+          name="ipURL"
+          placeholder="Enter the URL (Please ensure the correct domain name before checking)"
+          required
+        />
         <button type="submit" id="searchbutton">
           <svg
             xmlns="http://www.w3.org/2000/svg"

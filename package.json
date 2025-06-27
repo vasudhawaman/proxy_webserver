@@ -1,0 +1,20 @@
+{
+  "name": "proxy_server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasudhawaman/proxy_webserver.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vasudhawaman/proxy_webserver/issues"
+  },
+  "homepage": "https://github.com/vasudhawaman/proxy_webserver#readme",
+  "description": ""
+}
