@@ -4,18 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Proxy Web Server</title>
+<!-- API for icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
+    /> 
+<!--  API for fonts -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css?family=Montserrat"
-    />
+    /> 
     <link rel="stylesheet" href="/frontend/assets/css/style.css" />
   </head>
 
   <body>
+<!--   Sidebar containing references -->
     <nav class="sidebar">
       <ul>
         <li>
@@ -35,6 +38,7 @@
     </nav>
 
     <div class="main-content">
+<!-- Header -->
       <header class="head">
         <h2>🔒 Web Safety Checker</h2>
       </header>
@@ -44,6 +48,7 @@
         method="post"
         onsubmit="checkURL(); return false;"
       >
+<!-- Input Area -->
         <input
           id="inputURL"
           type="url"
@@ -68,6 +73,8 @@
           Check Safety
         </button>
       </form>
+
+<!-- Added descriptions containing About, Help , FAQ -->
       <section id="about">
         <h3>About Us</h3>
         <p>
@@ -124,11 +131,13 @@
       </section>
     </div>
 
+<!--  Script for FAQ  -->
     <script>
       document.querySelectorAll('#faq .faq-item').forEach((item) => {
         const q = item.querySelector('.faq-question');
         const a = item.querySelector('.faq-answer');
 
+        // Opens the desc on clicking the faq arrow
         q.addEventListener('click', () => {
           document.querySelectorAll('#faq .faq-item').forEach((other) => {
             if (other !== item) {
@@ -144,6 +153,6 @@
         });
       });
     </script>
-    <!-- <script src="Proxy_Web_Server.js"></script> -->
+    
   </body>
 </html>
