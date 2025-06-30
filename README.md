@@ -77,6 +77,10 @@ A Node.js-based proxy server that checks if a website is safe to visit. It integ
 - **dotenv** – Loads sensitive configuration (like API keys) from `.env` files into environment variables
 - **HTML & CSS (Vanilla)** – Used to build a clean, responsive user interface without any frontend frameworks
 
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE).
+
 ## 👥 Team Members
 
 1. **Vasudha Waman** – Mentor and project guide  
