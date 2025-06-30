@@ -28,7 +28,7 @@ async function checkSafety(req, res) {
         const { renderEjs } = require('../utils/render');
         return renderEjs(res, {
           http: false,
-          status: `⚠️ Caution: Google marked this site as unsafe to browse.`,
+          status: `❌ Caution: Google marked this site as unsafe to browse.`,
           score: null,
           missingHeaders: null,
           redirectURL: targetedURL,
