@@ -6,35 +6,8 @@
   <title>Site Safety Check</title>
 </head>
 <body>
-  <% if (http) { %>
-    <h2 style="color: red;">
-      ⚠️ Caution: This website is served over HTTP, not HTTPS.
-    </h2>
-    <p>
-      This means the connection is not encrypted, and any information you enter may be intercepted. Proceed only if you're confident about the site and aren't submitting sensitive data.
-    </p>
-    <a href="<%= redirectURL %>" target="_blank">🔗 Visit Anyway (Unsafe)</a>
-  <% } else { %>
-    <h2>🔍 Website Scan Results</h2>
-    <p><strong>Safety Status:</strong> <%= status %></p>
-
-    <% if (score !== null) { %>
-      <p><strong>Security Headers Score:</strong> <%= score %>% — based on presence of recommended headers</p>
-    <% } %>
-
-    <% if (missingHeaders && missingHeaders.length > 0) { %>
-        <p><strong>Missing Security Headers:</strong> <%= missingHeaders.join(', ') %></p>
-    <% } %>
-
-    <a href="<%= redirectURL %>" target="_blank">
-      🔗 Visit Site
-      <% if (score === null) { %>
-        (Unsafe)
-      <% } %>
-    </a>
-  <% } %>
-
-  <br><br>
-  <a href="/">⬅️ Return to Homepage</a>
+  <h1><%= valueObj.score %></h1>
+  <a href="">back</a>
+  <a href="<%= valueObj.redirectTo %>">continuw</a>
 </body>
 </html>

@@ -1,0 +1,2 @@
+webRequest -  Allows your extension to observe all HTTP/HTTPS requests made by the browser.
+webRequestBlocking - Lets your extension modify, cancel, or redirect those requests in real time.

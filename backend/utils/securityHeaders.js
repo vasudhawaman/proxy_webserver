@@ -3,16 +3,17 @@ const http = require('http');
 const { renderEjs } = require('./render');
 const { userAgent } = require('../controllers/homepage.controller');
 
-function checkSecurityHeaders(httpsRes) {
+function checkSecurityHeaders(headers, protocol) {
   const required = [
     'x-content-type-options',
     'content-security-policy',
     'x-xss-protection',
-    'strict-transport-security',
+    //this header is for https only
+    protocol === 'https' ? 'strict-transport-security' : null,
     'x-frame-options',
   ];
 
-  const missing = required.filter((h) => !httpsRes.headers[h]);
+  const missing = required.filter((h) => !headers[h]);
   const score = ((required.length - missing.length) / required.length) * 100;
 
   let message = '✅ All recommended security headers are present.';
@@ -31,7 +32,7 @@ function checkSecurityHeaders(httpsRes) {
       '❌ No security headers detected. It is strongly advised not to use or browse this website.';
   }
 
-  return { score, message, missingHeaders: missing };
+  return { headersScore:score, headersMessage:message, missingHeaders: missing };
 }
 
 function sendReqToGlobalServer(res, targetedURL) {

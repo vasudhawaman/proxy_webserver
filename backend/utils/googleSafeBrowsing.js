@@ -1,10 +1,10 @@
-const https = require('https');
-require('dotenv').config();
+import https from 'https';
+import dotenv from 'dotenv';
+dotenv.config();
 
 function useGoogleAPI(targetedURL) {
   const postData = JSON.stringify({
     client: {
-      // our project's id and version on google db
       clientId: 'proxyServer-IITI',
       clientVersion: '1.0.0',
     },
@@ -14,8 +14,8 @@ function useGoogleAPI(targetedURL) {
         'SOCIAL_ENGINEERING',
         'UNWANTED_SOFTWARE',
         'POTENTIALLY_HARMFUL_APPLICATION',
-      ], //types of threat to check against
-      platformTypes: ['WINDOWS'], //users platform
+      ],
+      platformTypes: ['WINDOWS'],
       threatEntryTypes: ['URL'],
       threatEntries: [{ url: targetedURL }],
     },
@@ -32,7 +32,6 @@ function useGoogleAPI(targetedURL) {
     },
   };
 
-  // Wrapping the API request in a Promise for async/await usage
   return new Promise((resolve, reject) => {
     const googleReq = https.request(options, (googleRes) => {
       let body = '';
@@ -41,7 +40,7 @@ function useGoogleAPI(targetedURL) {
       googleRes.on('end', () => {
         try {
           const result = JSON.parse(body);
-          resolve(Object.keys(result).length === 0); //google return empty object if url is safe
+          resolve(Object.keys(result).length === 0);
         } catch {
           reject(new Error('Failed to parse Google API response'));
         }
@@ -54,4 +53,4 @@ function useGoogleAPI(targetedURL) {
   });
 }
 
-module.exports = { useGoogleAPI };
+export { useGoogleAPI };

@@ -1,6 +1,11 @@
-const fs = require('fs');
-const path = require('path');
-const ejs = require('ejs');
+import fs from 'fs';
+import path from 'path';
+import ejs from 'ejs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function renderFile(res, filePath, errMsg) {
   fs.readFile(filePath, (err, data) => {
@@ -28,4 +33,4 @@ function renderEjs(res, valueObj) {
   );
 }
 
-module.exports = { renderFile, renderEjs };
+export { renderFile, renderEjs };
