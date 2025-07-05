@@ -11,12 +11,6 @@ const httpServer = http.createServer((clientReq, clientRes) => {
   //This callback is executed everytime our proxy receives a http request i.e. whenever the client tries to vist http websites
   //clientReq and clientRes is the req and res received and sent to chrome respectively
 
-  // Just for the sake of simplicity and double check not a part of logic
-  // console.log('Client req.method: ', clientReq.method);
-  console.log('Client req.url: ', clientReq.url);
-  // console.log('Client req.statusCode: ', clientReq.statusCode);
-  // console.log('Client req.headers: ', clientReq.headers);
-
   // Extracting info from the url of website that user wants to browse
   const parsedUrl = url.parse(clientReq.url);
 
@@ -29,6 +23,14 @@ const httpServer = http.createServer((clientReq, clientRes) => {
     headers: { ...clientReq.headers },
   };
 
+  // Just for the sake of simplicity and double check not a part of logic
+  // console.log('Client req.method: ', clientReq.method);
+  console.log(
+    `\nClient req URL: http://${options.hostname}:${options.port}${options.path}`
+  );
+  // console.log('Client req.statusCode: ', clientReq.statusCode);
+  console.log('Client req.headers: ', clientReq.headers, '\n');
+
   // Starts sending request to actual server, for now just send headers and sets up the connection
   // will setup body(payload) of req later on
   const proxyReq = http.request(options, (proxyRes) => {
@@ -36,7 +38,7 @@ const httpServer = http.createServer((clientReq, clientRes) => {
 
     // Just for the sake of simplicity and double check not a part of logic
     // console.log('Proxy res.method: ', proxyRes.method);
-    console.log('Proxy res.url: ', proxyRes.url);
+    // console.log('Proxy res.url: ', proxyRes.url);
     // console.log('Proxy res.statusCode: ', proxyRes.statusCode);
     // console.log('Proxy res.header: ', proxyRes.headers);
 
@@ -123,12 +125,6 @@ httpServer.on('connect', (req, clientSocket, head) => {
       // Extracting info from the url of website that user wants to browse
       const parsed = url.parse(httpsReq.url);
 
-      // Just for the sake of simplicity and double check not a part of logic
-      // console.log(`🔓 HTTPS request intercepted`);
-      // console.log(`🔹 Method: ${httpsReq.method}`);
-      console.log(`\nHTTPS req URL: ${httpsReq.url} \n`);
-      // console.log(`🔹 Headers:`, httpsReq.headers);
-
       // Configuring req object to make request to actual server
       const options = {
         hostname: parsed.hostname || host,
@@ -137,6 +133,14 @@ httpServer.on('connect', (req, clientSocket, head) => {
         method: httpsReq.method,
         headers: httpsReq.headers,
       };
+
+      // Just for the sake of simplicity and double check not a part of logic
+      // console.log(`🔓 HTTPS request intercepted`);
+      // console.log(`🔹 Method: ${httpsReq.method}`);
+      console.log(
+        `\nHTTPS req URL: https://${options.hostname}:${options.port}${options.path}`
+      );
+      console.log(`HTTPS Headers:`, httpsReq.headers, `\n`);
 
       // Starts making req to actual server
       const proxyReq = https.request(options, (proxyRes) => {

@@ -21,7 +21,7 @@ export function createFakeCert(hostname) {
 
   const attrs = [
     { name: 'commonName', value: hostname },
-    { name: 'organizationName', value: 'Team CloakOps' }, // valid
+    { name: 'organizationName', value: 'proxy' }, // valid
     // ❌ Do not use custom or random strings like "sd008"
   ];
   cert.setSubject(attrs);
