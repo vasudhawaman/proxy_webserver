@@ -19,18 +19,27 @@ function renderFile(res, filePath, errMsg) {
 }
 
 function renderEjs(res, valueObj) {
-  ejs.renderFile(
-    path.join(__dirname, '..', '..', 'src', 'views', 'response.ejs'),
-    valueObj,
-    (err, html) => {
-      if (err) {
-        res.writeHead(500);
-        return res.end('Error rendering EJS');
+  try {
+    ejs.renderFile(
+      path.join(__dirname, '..', '..', 'src', 'views', 'response.ejs'),
+      valueObj,
+      (err, html) => {
+        if (err) {
+          console.error('EJS rendering error:', err); // Log the actual EJS error for debugging
+          res.writeHead(500);
+          return res.end('Error rendering EJS file');
+        }
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(html);
       }
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(html);
-    }
-  );
+    );
+  } catch (error) {
+    console.error('Error in ejs rendering (outer catch): ', error.message); // Use console.error for errors
+    // You might also want to send a 500 response here
+    res.writeHead(500);
+    res.end('An unexpected error occurred during EJS rendering.');
+  }
 }
+
 
 export { renderFile, renderEjs };

@@ -1,19 +1,18 @@
-const https = require('https');
-const http = require('http');
-const { renderEjs } = require('./render');
-const { userAgent } = require('../controllers/homepage.controller');
+// utils/securityCheck.js
+import https from 'https';
+import http from 'http';
+import { renderEjs } from './render.js';
 
 function checkSecurityHeaders(headers, protocol) {
   const required = [
     'x-content-type-options',
     'content-security-policy',
     'x-xss-protection',
-    //this header is for https only
     protocol === 'https' ? 'strict-transport-security' : null,
     'x-frame-options',
   ];
 
-  const missing = required.filter((h) => !headers[h]);
+  const missing = required.filter((h) => h && !headers[h]);
   const score = ((required.length - missing.length) / required.length) * 100;
 
   let message = '✅ All recommended security headers are present.';
@@ -32,13 +31,12 @@ function checkSecurityHeaders(headers, protocol) {
       '❌ No security headers detected. It is strongly advised not to use or browse this website.';
   }
 
-  return { headersScore:score, headersMessage:message, missingHeaders: missing };
+  return { headersScore: score, headersMessage: message, missingHeaders: missing };
 }
 
 function sendReqToGlobalServer(res, targetedURL) {
   const { hostname, protocol } = new URL(targetedURL);
 
-  //if protocol is http - reponse user with unsafe
   if (protocol === 'http:') {
     return renderEjs(res, {
       http: true,
@@ -55,12 +53,7 @@ function sendReqToGlobalServer(res, targetedURL) {
     hostname,
     path: '/',
     method: 'GET',
-
-    //we are user-agent so that main server can treat our proxy server as browser instead of a nodejs server only
-    //then only it will send all security headers that a client(broswer) needs
     headers: { 'User-Agent': userAgent },
-
-    //for checking ssl/tls certificate
     rejectUnauthorized: true,
   };
 
@@ -68,14 +61,12 @@ function sendReqToGlobalServer(res, targetedURL) {
     let data = '';
     serverRes.on('data', (chunk) => (data += chunk));
     serverRes.on('end', () => {
-      //checking does the website uses all recommended security header
-      const result = checkSecurityHeaders(serverRes);
+      const result = checkSecurityHeaders(serverRes.headers, protocol.slice(0, -1));
 
-      //sending result obtained to client in a dynamic ejs file
       renderEjs(res, {
         http: false,
-        status: result.message,
-        score: result.score,
+        status: result.headersMessage,
+        score: result.headersScore,
         missingHeaders: result.missingHeaders,
         redirectURL: targetedURL,
       });
@@ -90,4 +81,4 @@ function sendReqToGlobalServer(res, targetedURL) {
   serverReq.end();
 }
 
-module.exports = { checkSecurityHeaders, sendReqToGlobalServer };
+export { checkSecurityHeaders, sendReqToGlobalServer };

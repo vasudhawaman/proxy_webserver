@@ -2,10 +2,10 @@ import http from 'http';
 import https from 'https';
 import net from 'net';
 import url from 'url';
-import { createFakeCert } from './certUtil.js';
 import { useGoogleAPI } from './utils/googleSafeBrowsing.js';
 import { renderEjs } from './utils/render.js';
-
+import { checkSecurityHeaders } from './utils/securityHeaders.js';
+import { createFakeCert } from './utils/createCert.js';
 // Note on Asynchronous Execution: Callbacks and event handlers execute when their respective events occur, not necessarily in the order they are defined in the code.
 
 // HTTP handler
@@ -13,8 +13,16 @@ const httpServer = http.createServer(async (clientReq, clientRes) => {
   //This callback is executed everytime our proxy receives a http request i.e. whenever the client tries to vist http websites
   //clientReq and clientRes is the req and res received and sent to chrome respectively
 
+  // Handle client request errors
+  clientReq.on('error', err => {
+    console.error('clientReq error:', err.message);
+    clientRes.writeHead(400);
+    clientRes.end('Client Request Error');
+  });
+
   // Extracting info from the url of website that user wants to browse
-  const parsedUrl = url.parse(clientReq.url);
+  // Passing true so that is parse query strings also
+  const parsedUrl = url.parse(clientReq.url, true);
 
   // Configuring req object to make request to actual server
   const options = {
@@ -25,60 +33,63 @@ const httpServer = http.createServer(async (clientReq, clientRes) => {
     headers: { ...clientReq.headers },
   };
 
-  const googleResult = await useGoogleAPI(
-    `http://${options.hostname}:${options.port}${options.path}`
-  );
-
-  console.log('googleResult: ', googleResult);
-
-  renderEjs(clientRes, {
-    score: googleResult,
-    redirectTo: `http://${options.hostname}:${options.port}${options.path}`,
-  });
-
-  // Just for the sake of simplicity and double check not a part of logic
-  // console.log('Client req.method: ', clientReq.method);
-  console.log(
-    `\nHTTPS req URL: http://${options.hostname}:${options.port}${options.path} \n`
-  );
-  // console.log('Client req.statusCode: ', clientReq.statusCode);
-  // console.log('Client req.headers: ', clientReq.headers);
+  const fullUrl = `http://${options.hostname}:${options.port}${options.path}`;
 
   // Starts sending request to actual server, for now just send headers and sets up the connection
   // will setup body(payload) of req later on
-  const proxyReq = http.request(options, (proxyRes) => {
+  const proxyReq = http.request(options, async (proxyRes) => {
     // This callback is executed when our proxy server starts receiving the http response from the server
+    try {
+      // if url don't have continue === true in query string => we've show response page
+      // Whereas if url have continue === true in query string => we've to redirect user to actual website
+      if (!parsedUrl.query.continue) {
+        // Checking url in google db
+        const googleApiResult = await useGoogleAPI(fullUrl);
 
-    // Just for the sake of simplicity and double check not a part of logic
-    // console.log('Proxy res.method: ', proxyRes.method);
-    console.log('Proxy res.url: ', proxyRes.url);
-    // console.log('Proxy res.statusCode: ', proxyRes.statusCode);
-    // console.log('Proxy res.header: ', proxyRes.headers);
+        // Checking security headers
+        const headersResult = checkSecurityHeaders(proxyRes.headers, 'http');
 
-    // Writing header for clientRes
-    clientRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+        // This is the object passed while rendering response.ejs(our response page)
+        // The properties of this object will become global in reponse.ejs => we can access its properties directly in the response.ejs
+        const valueObj = {
+          protocol: 'http',
+          googleApiResult,
+          headerScore: headersResult.headersScore, // a calculated score on the basis of number of headers used by website
+          headerMessage: headersResult.headersMessage, // a customised message for user on resposne page regarding headers
+          missingHeaders: headersResult.missingHeaders, // showing user the security headers that website doesn't use on response page
+          sslTlsStatus: 'N/A (HTTP)', // As this is http version ssl/tls makes no sense
+          redirectTo: fullUrl, // The url of website user wants to browse where we've to redirect user if she/he choose to continue
+        };
 
-    // Error handling
-    proxyRes.on('error', (err) => {
-      console.error(
-        'Proxy response stream error (HTTP, from actual server to client):',
-        err.message
-      );
-      if (!clientRes.headersSent) {
-        clientRes.writeHead(500); // Internal Server Error
+        // Rendering reponse.ejs(response page) to user
+        return renderEjs(clientRes, valueObj);
       }
-      clientRes.end('Proxy response stream error.');
-    });
 
-    // If any data has came along with the proxyRes forward it with clientRes
-    proxyRes.on('data', (chunk) => {
-      clientRes.write(chunk);
-    });
+      // All the below code under this cb will only be executed if user chooses to continue to the website
 
-    // As the proxy receives the complete res finish sending the res to chrome
-    proxyRes.on('end', () => {
-      clientRes.end();
-    });
+      // Writing header for clientRes
+      clientRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+
+      // If any data has came along with the proxyRes forward it with clientRes
+      proxyRes.on('data', (chunk) => {
+        clientRes.write(chunk);
+      });
+
+      // As the proxy receives the complete res finish sending the res to chrome
+      proxyRes.on('end', () => {
+        clientRes.end();
+      });
+    } catch (error) {
+      console.log('Error in proxyReq cb in http server: ', error.message);
+      clientRes.end('Error in proxyReq cb in http server');
+    }
+  });
+
+  // Handle proxy request errors
+  proxyReq.on('error', (err) => {
+    console.error('proxyReq error:', err.message);
+    clientRes.writeHead(502);
+    clientRes.end('Bad Gateway');
   });
 
   clientReq.on('data', (chunk) => {
@@ -91,25 +102,6 @@ const httpServer = http.createServer(async (clientReq, clientRes) => {
     // As chrome finish the req end the request to actual server
     proxyReq.end();
   });
-
-  // Error handling
-  clientReq.on('error', (err) => {
-    console.error(
-      'Client request stream error (HTTP, from Chrome to proxy):',
-      err.message
-    );
-    if (!clientRes.headersSent) {
-      clientRes.writeHead(500); // Internal Server Error
-    }
-    clientRes.end('Client request stream error.');
-  });
-
-  //Handling errors for the proxy's outbound request to the actual server
-  proxyReq.on('error', (err) => {
-    console.error('Proxy request error (HTTP, to actual server):', err.message);
-    clientRes.writeHead(502);
-    clientRes.end('Bad Gateway');
-  });
 });
 
 // HTTPS MitM handler or you can say CONNECT Listener
@@ -118,6 +110,11 @@ httpServer.on('connect', (req, clientSocket, head) => {
   // req is not the req made by user the but the CONNECT req made by chrome
   // clientSocket is the socket on which chrome is listening
   // head is any left over data
+
+  // Handle client socket errors
+  clientSocket.on('error', err => {
+    console.error('clientSocket error:', err.message);
+  });
 
   //Extracting host and port form req.url(eg - example.com:443)
   const [host, port] = req.url.split(':');
@@ -135,68 +132,92 @@ httpServer.on('connect', (req, clientSocket, head) => {
       // httpsRes is the res sent to chrome
       // As mentioned here we can read the data
 
-      // Extracting info from the url of website that user wants to browse
-      const parsed = url.parse(httpsReq.url);
+      // Handle https request errors
+      httpsReq.on('error', err => {
+        console.error('httpsReq error:', err.message);
+      });
 
-      // Configuring req object to make request to actual server
-      const options = {
-        hostname: parsed.hostname || host,
-        port: parsed.port || 443,
-        path: parsed.path,
-        method: httpsReq.method,
-        headers: httpsReq.headers,
-      };
+      try {
+        // Extracting info from the url of website that user wants to browse
+        // Passing true so that is parse query strings also
+        const parsedUrl = url.parse(httpsReq.url, true);
 
-      // Just for the sake of simplicity and double check not a part of logic
-      // console.log(`🔓 HTTPS request intercepted`);
-      // console.log(`🔹 Method: ${httpsReq.method}`);
-      console.log(
-        `\nHTTPS req URL: https://${options.hostname}:${options.port}${options.path} \n`
-      );
-      // console.log(`🔹 Headers:`, httpsReq.headers);
+        // Configuring req object to make request to actual server
+        const options = {
+          hostname: parsedUrl.hostname || host,
+          port: parsedUrl.port || 443,
+          path: parsedUrl.path,
+          method: httpsReq.method,
+          headers: httpsReq.headers,
+        };
 
-      // Starts making req to actual server
-      const proxyReq = https.request(options, (proxyRes) => {
-        // This callback is executed when our duplicate https server starts receiving response from the actual server
-        //proxyRes is the response received from the real target server.
+        const fullUrl = `https://${options.hostname}:${options.port}${options.path}`;
 
-        //setting headers for the response to chrome
-        httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+        // Starts making req to actual server
+        const proxyReq = https.request(options, async (proxyRes) => {
+          // This callback is executed when our duplicate https server starts receiving response from the actual server
+          //proxyRes is the response received from the real target server.
 
-        // Error handling
-        proxyRes.on('error', (err) => {
-          console.error(
-            'HTTPS Proxy response stream error (from actual server to client):',
-            err.message
-          );
-          if (!httpsRes.headersSent) {
-            httpsRes.writeHead(500); // Internal Server Error
+          // if url don't have continue === true in query string => we've show response page
+          // Whereas if url have continue === true in query string => we've to redirect user to actual website
+          if (!parsedUrl.query.continue) {
+            // Checking url in google db
+            const googleApiResult = await useGoogleAPI(fullUrl);
+
+            // Checking security headers
+            const headersResult = checkSecurityHeaders(
+              proxyRes.headers,
+              'https'
+            );
+
+            // This is the object passed while rendering response.ejs(our response page)
+            // The properties of this object will become global in reponse.ejs => we can access its properties directly in the response.ejs
+            const valueObj = {
+              protocol: 'https',
+              googleApiResult,
+              headerScore: headersResult.headersScore, // a calculated score on the basis of number of headers used by website
+              headerMessage: headersResult.headersMessage, // a customised message for user on resposne page regarding headers
+              missingHeaders: headersResult.missingHeaders, // showing user the security headers that website doesn't use on response page
+              sslTlsStatus: 'Aneekesh bhai ki JAI HO!!!', // Have not implemented ssl/tls certificate check yet
+              redirectTo: fullUrl, // The url of website user wants to browse where we've to redirect user if she/he choose to continue
+            };
+
+            // Rendering reponse.ejs(response page) to user
+            return renderEjs(httpsRes, valueObj);
           }
-          httpsRes.end('Proxy response stream error.');
+
+          // All the below code under this cb will only be executed if user chooses to continue to the website
+
+          //setting headers for the response to chrome
+          httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+
+          //send any data came along with proxyRes to httpsRes
+          //and end httpsRes as soon as proxyRes ends
+          proxyRes.pipe(httpsRes);
         });
 
-        //send any data came along with proxyRes to httpsRes
-        //and end httpsRes as soon as proxyRes ends
-        proxyRes.pipe(httpsRes);
-      });
+        // Handle proxy request errors
+        proxyReq.on('error', (err) => {
+          console.error('proxyReq (HTTPS) error:', err.message);
+          httpsRes.writeHead(502);
+          httpsRes.end('Bad Gateway');
+        });
 
-      // Error handling
-      httpsReq.on('error', (err) => {
-        console.error(
-          'HTTPS Client request stream error (from Chrome to proxy):',
-          err.message
-        );
-        if (!httpsRes.headersSent) {
-          httpsRes.writeHead(500);
-        }
-        httpsRes.end('Client request stream error.');
-      });
-
-      //send any data came along with httpsReq to proxyReq
-      //and end proxyReq as soon as httpsReq ends
-      httpsReq.pipe(proxyReq);
+        //send any data came along with httpsReq to proxyReq
+        //and end proxyReq as soon as httpsReq ends
+        httpsReq.pipe(proxyReq);
+      } catch (error) {
+        console.log('Error in https server cb :', error.message);
+        httpsRes.end('Error in https server cb');
+      }
     }
   );
+
+  // Handle HTTPS server errors
+  httpsServer.on('error', (err) => {
+    console.error('httpsServer error:', err.message);
+    clientSocket.end();
+  });
 
   // Starts listing for requests on our duplicate https server
   // Node.js will assign a random available port. When no hostname is specified, the server will typically listen on all available network interfaces (0.0.0.0), but we explicitly connect to '127.0.0.1' (localhost) from within the proxy for efficient and secure internal communication over the loopback interface.
@@ -225,45 +246,34 @@ httpServer.on('connect', (req, clientSocket, head) => {
 
       tunnelSocket.write(head);
 
-      // Error handling
-      tunnelSocket.on('error', (err) => {
-        console.error(
-          'Tunnel socket error (internal connection):',
-          err.message
-        );
-        clientSocket.destroy(); // Ensure client connection is destroyed
-      });
-
-      // Using pipe() for data flow. Errors on piped streams are handled by their 'error' events. // For simplicity, explicit .on('error') on pipe chains are removed.
-      // These pipes will implicitly propagate errors, leading to the above .on('error') handlers
       clientSocket.pipe(tunnelSocket);
       tunnelSocket.pipe(clientSocket);
     });
-  });
 
-  //Handling errors for the internal HTTPS server
-  httpsServer.on('error', (err) => {
-    console.error('HTTPS Server Error (internal):', err.message);
-    clientSocket.end(); // Attempt to gracefully end the client's connection if the HTTPS server fails
+    // Handle tunnel socket errors
+    tunnelSocket.on('error', (err) => {
+      console.error('tunnelSocket error:', err.message);
+      clientSocket.end();
+    });
   });
 });
 
-const PORT = 3000; // Define PORT before using it in the error handler
-
-// Handling errors for the main HTTP proxy server itself (e.g., port in use)
+// Handle httpServer errors (like EADDRINUSE)
 httpServer.on('error', (err) => {
-  console.error('CRITICAL HTTP Server Error (main proxy):', err.message); // Using console.error for critical errors
-
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use.`);
-    process.exit(1); // Exit with a non-zero code to indicate an error
-  } else {
-    console.error('Unexpected HTTP Server error:', err);
-    process.exit(1); // Exit for other unexpected server errors
-  }
+  console.error('httpServer error:', err.message);
 });
 
+const PORT = 3000; // Define PORT before using
 // Starts listening to request on our whole proxy server
 httpServer.listen(PORT, () => {
   console.log(`🔐 MITM Proxy running on port ${PORT}`);
+});
+
+// Global error handling
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
 });
