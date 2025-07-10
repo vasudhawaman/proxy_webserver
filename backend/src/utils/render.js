@@ -21,7 +21,7 @@ function renderFile(res, filePath, errMsg) {
 function renderEjs(res, valueObj) {
   try {
     ejs.renderFile(
-      path.join(__dirname, '..', '..', 'src', 'views', 'response.ejs'),
+      path.join(__dirname, '..', '..', '..', 'views', 'response.ejs'),
       valueObj,
       (err, html) => {
         if (err) {
