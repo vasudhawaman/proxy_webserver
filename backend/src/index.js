@@ -18,5 +18,5 @@ httpServer.on('error', (err) => {
 attachGlobalErrorHandlers();
 
 httpServer.listen(PORT, () => {
-  console.log(`🔐 MITM Proxy running on port ${PORT}`);
+  console.log(` MITM Proxy running on port ${PORT}`);
 });
