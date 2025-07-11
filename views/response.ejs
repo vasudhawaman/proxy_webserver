@@ -2,68 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Site Safety Check</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      background-color: #f8f9fa;
-    }
-    h1, h2 {
-      margin-bottom: 1rem;
-    }
-    .safe { color: green; }
-    .warning { color: orange; }
-    .danger { color: red; }
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
-    }
-    a.button {
-      display: inline-block;
-      margin-right: 1rem;
-      padding: 0.5rem 1.2rem;
-      background: #007bff;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    a.button:hover {
-      background: #0056b3;
-    }
-  </style>
 </head>
 <body>
-  <div class="card">
-    <h1 class="<%= protocol === 'https' ? 'safe' : 'danger' %>">
-      Protocol: <%= protocol %> <%= protocol === 'http' ? '(Not Secure)' : '(Secure)' %>
-    </h1>
-    
-    <h2 class="<%= googleApiResult === 'safe' ? 'safe' : 'danger' %>">
-      Google Safe Browsing: <%= googleApiResult === 'safe' ? 'No threats detected ✅' : 'Threat detected ❌' %>
-    </h2>
+  <h1>Protocol: <%= protocol %> <%= protocol === 'http' ? '(Not Secure)' : '(Secure)' %></h1>
 
-    <h2 class="<%= headerScore > 80 ? 'safe' : headerScore > 50 ? 'warning' : 'danger' %>">
-      Security Header Score: <%= headerScore %>%
-    </h2>
-    <p><strong>Header Analysis:</strong> <%= headerMessage %></p>
+  <h2>Google Safe Browsing:</h2>
+  <p><%= googleApiResult === 'safe' ? 'No threats detected ✅' : 'Threat detected ❌' %></p>
 
-    <% if (missingHeaders && missingHeaders.length > 0) { %>
-      <p><strong>Missing Headers:</strong> <%= missingHeaders.join(', ') %></p>
-    <% } else { %>
-      <p><strong>All recommended headers are present.</strong></p>
-    <% } %>
+  <h2>Security Header Score:</h2>
+  <p><%= headerScore %>%</p>
+  <p><strong>Header Analysis:</strong> <%= headerMessage %></p>
 
-    <h2>SSL/TLS: <%= sslTlsStatus %></h2>
+  <% if (missingHeaders && missingHeaders.length > 0) { %>
+    <p><strong>Missing Headers:</strong></p>
+    <ul>
+      <% missingHeaders.forEach(header => { %>
+        <li><%= header %></li>
+      <% }); %>
+    </ul>
+  <% } else { %>
+    <p><strong>All recommended headers are present.</strong></p>
+  <% } %>
 
-    <div>
-      <a class="button" href="/">⬅ Back</a>
-      <a class="button" href="<%= redirectTo %>?continue=true">⚠️ Continue Anyway</a>
-    </div>
-  </div>
+  <h2>SSL/TLS Status:</h2>
+  <p><%= sslTlsStatus %></p>
+
+  <% if (sslDetails && Object.keys(sslDetails).length > 0) { %>
+    <h3>Certificate Details:</h3>
+    <ul>
+      <li><strong>Subject:</strong> <%= sslDetails.subject.CN || 'N/A' %></li>
+      <li><strong>Issuer:</strong> <%= sslDetails.issuer.CN || 'N/A' %></li>
+      <li><strong>Valid From:</strong> <%= sslDetails.valid_from %></li>
+      <li><strong>Valid To:</strong> <%= sslDetails.valid_to %></li>
+    </ul>
+  <% } %>
+
+  <p>
+    <a href="/">⬅ Back</a>
+    &nbsp;&nbsp;
+    <a href="<%= redirectTo %>?continue=true">⚠️ Continue Anyway</a>
+  </p>
 </body>
 </html>
