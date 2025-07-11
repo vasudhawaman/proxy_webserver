@@ -31,6 +31,43 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
 
       const fullUrl = `https://${options.hostname}:${options.port}${options.path}`;
       const proxyReq = https.request(options, async (proxyRes) => {
+        const cert = proxyRes.socket.getPeerCertificate();
+
+let sslTlsStatus = 'Valid SSL certificate';
+let sslDetails = {};
+
+if (!cert || Object.keys(cert).length === 0) {
+  sslTlsStatus = 'No certificate found (not a valid SSL connection)';
+} else {
+  sslDetails = {
+    subject: cert.subject,
+    issuer: cert.issuer,
+    valid_from: cert.valid_from,
+    valid_to: cert.valid_to,
+  };
+
+  // Expiration check
+  const now = new Date();
+  const validFrom = new Date(cert.valid_from);
+  const validTo = new Date(cert.valid_to);
+
+  if (now < validFrom || now > validTo) {
+    sslTlsStatus = 'SSL certificate is expired or not yet valid';
+  }
+
+  // Certificate validity (was handshake successful?)
+  if (!proxyRes.socket.authorized) {
+    sslTlsStatus = 'SSL certificate is not valid: ' + proxyRes.socket.authorizationError;
+  }
+}
+
+// Then you can add sslTlsStatus and sslDetails to your valueObj for rendering:
+const valueObj = {
+  // ...
+  sslTlsStatus,
+  sslDetails,
+  redirectTo: fullUrl,
+};
         if (!parsedUrl.query.continue) {
           const googleApiResult = await useGoogleAPI(fullUrl);
           const headersResult = checkSecurityHeaders(proxyRes.headers, 'https');
