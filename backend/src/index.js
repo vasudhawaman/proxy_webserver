@@ -2,8 +2,9 @@ import http from 'http';
 import { handleHttpRequest } from './handlers/httpHandler.js';
 import { handleHttpsConnect } from './handlers/httpsHandler.js';
 import { attachGlobalErrorHandlers } from './errorHandlers/globalErrors.js';
+import 'dotenv/config'
 
-const PORT = 3000;
+const PORT = process.env.PORT;
 const httpServer = http.createServer(handleHttpRequest);
 
 // Handle HTTPS CONNECT requests (MitM)

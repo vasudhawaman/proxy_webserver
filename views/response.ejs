@@ -26,6 +26,7 @@
     <p><strong>All recommended headers are present.</strong></p>
   <% } %>
 
+  <% if(sslTlsStatus && sslDetails) {%>
   <h2>SSL/TLS Status:</h2>
   <p><%= sslTlsStatus %></p>
 
@@ -38,11 +39,14 @@
       <li><strong>Valid To:</strong> <%= sslDetails.valid_to %></li>
     </ul>
   <% } %>
-
+  <% } %>
+  
   <p>
     <a href="/">⬅ Back</a>
     &nbsp;&nbsp;
-    <a href="<%= redirectTo %>?continue=true">⚠️ Continue Anyway</a>
+    <% if(visit) {%>
+    <a href="<%= redirectTo %>?continue=true">Visit Website</a>
+    <% } %>
   </p>
 </body>
 </html>

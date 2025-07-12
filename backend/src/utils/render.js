@@ -3,20 +3,11 @@ import path from 'path';
 import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { checkSecurityHeaders } from './securityHeaders.js';
+import { useGoogleAPI } from './googleSafeBrowsing.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-function renderFile(res, filePath, errMsg) {
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(500);
-      return res.end(errMsg);
-    }
-    res.writeHead(200);
-    return res.end(data);
-  });
-}
 
 function renderEjs(res, valueObj) {
   try {
@@ -41,5 +32,23 @@ function renderEjs(res, valueObj) {
   }
 }
 
+async function setupHttpEjs(url,serverRes,clientRes,isVisit) {
+  const googleApiResult = await useGoogleAPI(url);
+  const headersResult = checkSecurityHeaders(serverRes.headers, 'http');
 
-export { renderFile, renderEjs };
+  const valueObj = {
+    protocol:'http',
+    googleApiResult,
+    headerScore: headersResult.headersScore,
+    headerMessage: headersResult.headersMessage,
+    missingHeaders: headersResult.missingHeaders,
+    sslTlsStatus: null,
+    sslDetails: null,
+    redirectTo: url,
+    visit: isVisit
+  };
+
+  return renderEjs(clientRes, valueObj);
+}
+
+export { renderEjs,setupHttpEjs };

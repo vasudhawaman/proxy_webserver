@@ -83,3 +83,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   }
 });
+
+
+//////////////////*********************************************///////////////////////////
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Handle manual URL submission
+  if (message.type === 'IPURL') {
+  const url = message.url;
+  console.log('User-entered URL:', url);
+
+  // Open new tab with the rendered response page
+  chrome.tabs.create({
+    url: `http://localhost:3000/inspect?manual=1&url=${encodeURIComponent(url)}`
+  });
+}
+});
