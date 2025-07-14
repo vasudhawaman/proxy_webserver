@@ -6,6 +6,25 @@ import { renderEjs } from '../utils/render.js';
 import { useGoogleAPI } from '../utils/googleSafeBrowsing.js';
 import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
+import { Parser } from 'htmlparser2';
+
+// List of malicious patterns (as regexes or matching functions)
+const MALICIOUS_PATTERNS = [
+  { name: '<script>', regex: /<script[\s>]/gi },
+  { name: 'javascript:', regex: /javascript:/gi },
+  { name: 'inline event handler', regex: /on\w+\s*=/gi },
+  { name: '<iframe>', regex: /<iframe[\s>]/gi }
+  // Add more as needed
+];
+
+function countMaliciousPatterns(html) {
+  let total = 0;
+  MALICIOUS_PATTERNS.forEach(pattern => {
+    const matches = html.match(pattern.regex);
+    if (matches) total += matches.length;
+  });
+  return total;
+}
 
 export const handleHttpsConnect = (req, clientSocket, head) => {
   clientSocket.on('error', (err) => {
@@ -34,9 +53,8 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
 
         const fullUrl = `https://${options.hostname}:${options.port}${options.path}`;
         const proxyReq = https.request(options, async (proxyRes) => {
-          
           // SSL certificate extraction
-          const {sslTlsStatus,sslDetails,} = checkSSL(proxyRes)
+          const { sslTlsStatus, sslDetails } = checkSSL(proxyRes);
 
           // Only show response page if ?continue is not present
           if (!parsedUrl.query.continue) {
@@ -61,8 +79,36 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
             return renderEjs(httpsRes, valueObj);
           }
 
-          httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
-          proxyRes.pipe(httpsRes);
+          // Buffer the proxy response if Content-Type is HTML
+          const contentType = proxyRes.headers['content-type'] || '';
+          if (contentType.includes('text/html')) {
+            let bodyChunks = [];
+            proxyRes.on('data', chunk => {
+              bodyChunks.push(chunk);
+            });
+            proxyRes.on('end', () => {
+              const body = Buffer.concat(bodyChunks).toString('utf-8');
+              const maliciousCount = countMaliciousPatterns(body);
+
+              // Respond to user with the malicious count and the original HTML (or you can just send the count)
+              httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+              httpsRes.end(
+                `<div style="background:#ffdddd;border:1px solid #ff8888;padding:1em;margin-bottom:1em;">
+                  <strong>Warning:</strong> Detected <b>${maliciousCount}</b> potentially malicious keyword(s) in this HTML response.
+                </div>` +
+                body
+              );
+            });
+            proxyRes.on('error', (err) => {
+              console.error('proxyRes error (buffering):', err.message);
+              httpsRes.writeHead(502);
+              httpsRes.end('Bad Gateway');
+            });
+          } else {
+            // Non-HTML: stream as usual
+            httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+            proxyRes.pipe(httpsRes);
+          }
         });
 
         proxyReq.on('error', (err) => {
