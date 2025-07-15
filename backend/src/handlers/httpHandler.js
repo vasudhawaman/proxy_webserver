@@ -1,8 +1,7 @@
-const http = require('http');
-const https = require('https');
-const path = require('path');
-const { parseDocument } = require('htmlparser2');
-const { DomUtils } = require('htmlparser2');
+import http from 'http';
+import https from 'https';
+import path from 'path';
+import { parseDocument, DomUtils } from 'htmlparser2';
 
 // Helper to check if the request is a direct HTML file
 function isHtmlFile(urlPath) {
@@ -41,9 +40,6 @@ async function httpHandler(req, res) {
                 const dom = parseDocument(html);
 
                 // Example: You can modify or inspect the DOM here
-                // For example, change the title:
-                // const titleTag = DomUtils.find(el => el.name === 'title', dom.children, true, 1)[0];
-                // if (titleTag) titleTag.children[0].data = 'New Title';
 
                 // Convert back to HTML string
                 const modifiedHtml = DomUtils.getOuterHTML(dom);
@@ -65,4 +61,4 @@ async function httpHandler(req, res) {
     req.pipe(proxyReq);
 }
 
-module.exports = httpHandler;
+export default httpHandler;
