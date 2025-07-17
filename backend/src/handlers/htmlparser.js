@@ -164,10 +164,5 @@ function getMaliciousCodeCount(htmlContent) {
     return detectMaliciousCode(htmlContent).totalMaliciousCount;
 }
 
-// Module exports
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        detectMaliciousCode,
-        getMaliciousCodeCount
-    };
-}
+// ES Module exports
+export { detectMaliciousCode, getMaliciousCodeCount };
