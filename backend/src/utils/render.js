@@ -32,23 +32,42 @@ function renderEjs(res, valueObj) {
   }
 }
 
-async function setupHttpEjs(url,serverRes,clientRes,isVisit) {
-  const googleApiResult = await useGoogleAPI(url);
-  const headersResult = checkSecurityHeaders(serverRes.headers, 'http');
+async function setupHttpEjs(url, serverRes, clientRes, isVisit, checking,checkMsg) {
+  let valueObj = {};
+  if (checking) {
+    const googleApiResult = await useGoogleAPI(url);
+    const headersResult = checkSecurityHeaders(serverRes.headers, 'http');
 
-  const valueObj = {
-    protocol:'http',
-    googleApiResult,
-    headerScore: headersResult.headersScore,
-    headerMessage: headersResult.headersMessage,
-    missingHeaders: headersResult.missingHeaders,
-    sslTlsStatus: null,
-    sslDetails: null,
-    redirectTo: url,
-    visit: isVisit
-  };
+    valueObj = {
+      checking,
+      checkMsg,
+      protocol: 'http',
+      googleApiResult,
+      headerScore: headersResult.headersScore,
+      headerMessage: headersResult.headersMessage,
+      missingHeaders: headersResult.missingHeaders,
+      sslTlsStatus: null,
+      sslDetails: null,
+      redirectTo: url,
+      visit: isVisit,
+    };
+  } else {
+    valueObj = {
+      checking, 
+      checkMsg,
+      protocol:null,
+      googleApiResult:null,
+      headerScore: null,
+      headerMessage: null,
+      missingHeaders: null,
+      sslTlsStatus: null,
+      sslDetails: null,
+      redirectTo: url,
+      visit: false,
+    };
+  }
 
   return renderEjs(clientRes, valueObj);
 }
 
-export { renderEjs,setupHttpEjs };
+export { renderEjs, setupHttpEjs };

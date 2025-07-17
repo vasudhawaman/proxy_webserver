@@ -1,169 +1,192 @@
 import http from 'http';
+import url from 'url';
 import https from 'https';
-import path from 'path';
-import fs from 'fs/promises';
-import { parseDocument, DomUtils } from 'htmlparser2';
-import { parse as parseJS } from 'acorn';
-import * as acornWalk from 'acorn-walk';
+import { useGoogleAPI } from '../utils/googleSafeBrowsing.js';
+import { renderEjs, setupHttpEjs } from '../utils/render.js';
+import { checkSecurityHeaders } from '../utils/securityHeaders.js';
+import { checkSSL } from '../utils/checkSsl.js';
+import { feedbackHandler } from './feedbackHandler.js';
+import { getFeedbackStatus } from '../utils/feedback.js';
 
-// Helper to check if the request is a direct HTML file
-function isHtmlFile(urlPath) {
-    return path.extname(urlPath).toLowerCase() === '.html';
-}
+export const handleHttpRequest = async (clientReq, clientRes) => {
+  clientReq.on('error', (err) => {
+    console.error('clientReq error:', err.message);
+    clientRes.writeHead(400);
+    clientRes.end('Client Request Error');
+  });
 
-// Helper to extract inline scripts from a DOM
-function extractInlineScripts(dom) {
-    return DomUtils.findAll(
-        elem => elem.name === 'script' && !elem.attribs?.src,
-        dom.children || []
-    ).map(scriptElem =>
-        scriptElem.children && scriptElem.children[0] && scriptElem.children[0].data
-            ? scriptElem.children[0].data
-            : ''
-    ).filter(Boolean);
-}
+  // CORS headers
+  clientRes.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
+  clientRes.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, DELETE, OPTIONS'
+  );
+  clientRes.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-// Helper to scan JavaScript for suspicious keywords using Acorn AST (just like in httpsHandler)
-function containsMaliciousKeyword(jsCode) {
-    const suspiciousKeywords = [
-        'eval', 'Function', 'setInterval', 'setTimeout',
-        'document', 'window', 'XMLHttpRequest', 'fetch', 'WebSocket',
-        'importScripts', 'Worker', 'atob', 'btoa'
-    ];
-    try {
-        const ast = parseJS(jsCode, { ecmaVersion: 2020 });
-        let found = false;
-        acornWalk.simple(ast, {
-            Identifier(node) {
-                if (suspiciousKeywords.includes(node.name)) {
-                    found = true;
-                }
-            },
-            MemberExpression(node) {
-                if (node.object && node.property) {
-                    const objectName = node.object.name || '';
-                    const propName = node.property.name || '';
-                    if (suspiciousKeywords.includes(objectName) || suspiciousKeywords.includes(propName)) {
-                        found = true;
-                    }
-                }
-            }
-        });
-        return found;
-    } catch (e) {
-        // If parsing fails (e.g., obfuscated code), treat as suspicious
-        return true;
+  // Handle CORS preflight requests
+  if (clientReq.method === 'OPTIONS') {
+    clientRes.writeHead(204); // No Content
+    return clientRes.end();
+  }
+
+  const parsedUrl = url.parse(clientReq.url, true);
+  let fullUrl = '';
+  let options = {};
+
+  if (parsedUrl.pathname === '/api/feedback') {
+    return feedbackHandler(clientReq, clientRes);
+  }
+
+  if (parsedUrl.pathname === '/inspect' && parsedUrl.query.manual === '1') {
+    // handling manual input
+    const inputUrl = url.parse(parsedUrl.query.url); // ← Parse the actual input URL
+    
+    if(parsedUrl.query.url.endsWith('/')){
+      fullUrl = parsedUrl.query.url 
+    }else{
+      fullUrl = parsedUrl.query.url + '/'
     }
-}
 
-// Helper to scan HTML for suspicious tags and attributes
-function containsMaliciousHtml(dom) {
-    const suspiciousTags = ['iframe', 'object', 'embed', 'link', 'base'];
-    const suspiciousAttrs = [
-        /^on/i, // inline event handlers: onclick, onerror, etc.
-        /^srcdoc$/i,
-        /^src$/i,
-        /^data$/i
-    ];
-    let found = false;
+    switch (getFeedbackStatus(fullUrl)) {
+      case 'unsafe':
+        return setupHttpEjs(
+          null,
+          null,
+          clientRes,
+          false,
+          false,
+          'Website already marked as unsafe'
+        );
+      case 'safe':
+        return setupHttpEjs(
+          null,
+          null,
+          clientRes,
+          false,
+          false,
+          'Website already marked safe'
+        );
+    }
 
-    function scan(node) {
-        if (node.type === 'tag') {
-            if (suspiciousTags.includes(node.name)) found = true;
-            for (const [attr, val] of Object.entries(node.attribs || {})) {
-                if (suspiciousAttrs.some(regex => regex.test(attr))) found = true;
-                if ((attr === 'src' || attr === 'data') && /javascript:|data:text\/html/i.test(val)) found = true;
-            }
+    const manualProtocol = inputUrl.protocol.replace(':', '');
+    options = {
+      hostname: inputUrl.hostname,
+      path: inputUrl.path || '/',
+      method: 'GET',
+      headers: { 'User-Agent': clientReq.headers['user-agent'] },
+    };
+
+    if (manualProtocol === 'http') {
+      const serverReq = http.request(options, async (serverRes) => {
+        try {
+          return setupHttpEjs(fullUrl, serverRes, clientRes, false, true, '');
+        } catch (error) {
+          console.log('Error in serverReq cb in http server: ', error.message);
+          clientRes.end('Error in serverReq cb in http server');
         }
-        if (node.children) for (const child of node.children) scan(child);
+      });
+
+      serverReq.on('error', (err) => {
+        console.error('serverReq error:', err);
+        clientRes.writeHead(502);
+        clientRes.end('Bad Gateway');
+      });
+
+      clientReq.on('data', (chunk) => serverReq.write(chunk));
+      clientReq.on('end', () => serverReq.end());
+    } else {
+      // define for https
+      const serverReq = https.request(options, async (serverRes) => {
+        try {
+          const googleApiResult = await useGoogleAPI(fullUrl);
+          const headersResult = checkSecurityHeaders(
+            serverRes.headers,
+            'https'
+          );
+
+          // ssl certificate
+          const { sslTlsStatus, sslDetails } = checkSSL(serverRes);
+
+          const valueObj = {
+            checking:true,
+            checkMsg:'',
+            protocol: 'https',
+            googleApiResult,
+            headerScore: headersResult.headersScore,
+            headerMessage: headersResult.headersMessage,
+            missingHeaders: headersResult.missingHeaders,
+            sslTlsStatus,
+            sslDetails,
+            redirectTo: fullUrl,
+            visit: false,
+          };
+
+          return renderEjs(clientRes, valueObj);
+        } catch (error) {
+          console.log(
+            'Error in serverReq cb in http server shelly: ',
+            error.message
+          );
+          clientRes.end('Error in serverReq cb in http server shelly');
+        }
+      });
+
+      serverReq.on('error', (err) => {
+        console.error('serverReq error:', err);
+        clientRes.writeHead(502);
+        clientRes.end('Bad Gateway');
+      });
+
+      clientReq.on('data', (chunk) => serverReq.write(chunk));
+      clientReq.on('end', () => serverReq.end());
     }
-    for (const node of dom.children || []) scan(node);
-    return found;
-}
+  } else {
+    options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || 80,
+      path: parsedUrl.path,
+      method: clientReq.method,
+      headers: { ...clientReq.headers },
+    };
+    fullUrl = `http://${options.hostname}${options.path}`;
 
-async function serveStaticHtml(filePath, res) {
-    try {
-        const html = await fs.readFile(filePath, 'utf8');
-        const dom = parseDocument(html);
-
-        if (containsMaliciousHtml(dom)) {
-            res.writeHead(403, { 'Content-Type': 'text/plain' });
-            res.end('Blocked: Malicious HTML detected in static file.');
-            return;
+    const proxyReq = http.request(options, async (proxyRes) => {
+      try {
+        // DONT CHNAGE THE SEQUENCE OF IF BLOCKS
+        if (getFeedbackStatus(fullUrl) === 'unsafe') {
+          return setupHttpEjs(
+            null,
+            null,
+            clientRes,
+            false,
+            false,
+            'Website marked unsafe you cant continue'
+          );
         }
 
-        const inlineScripts = extractInlineScripts(dom);
-        if (inlineScripts.some(js => containsMaliciousKeyword(js))) {
-            res.writeHead(403, { 'Content-Type': 'text/plain' });
-            res.end('Blocked: Malicious JavaScript detected in static file.');
-            return;
+        if (
+          !parsedUrl.query.continue &&
+          !(getFeedbackStatus(fullUrl) === 'safe')
+        ) {
+          return setupHttpEjs(fullUrl, proxyRes, clientRes, true, true, '');
         }
 
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(DomUtils.getOuterHTML(dom));
-    } catch {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('File not found');
-    }
-}
-
-async function httpHandler(req, res) {
-    const targetUrl = req.url; // adjust if you use a proxy mapping
-    const parsedUrl = new URL(targetUrl, `http://${req.headers.host}`);
-    const urlPath = parsedUrl.pathname;
-
-    // Serve static .html files with security scan
-    if (isHtmlFile(urlPath)) {
-        const staticFilePath = path.join(process.cwd(), 'public', urlPath);
-        await serveStaticHtml(staticFilePath, res);
-        return;
-    }
-
-    // Proxy/forward other requests
-    const client = parsedUrl.protocol === 'https:' ? https : http;
-
-    const proxyReq = client.request(targetUrl, {
-        method: req.method,
-        headers: req.headers,
-    }, proxyRes => {
-        let data = [];
-
-        proxyRes.on('data', chunk => data.push(chunk));
-        proxyRes.on('end', async () => {
-            const buffer = Buffer.concat(data);
-            const contentType = proxyRes.headers['content-type'] || '';
-
-            if (contentType.includes('text/html')) {
-                const html = buffer.toString();
-                const dom = parseDocument(html);
-
-                if (containsMaliciousHtml(dom)) {
-                    res.writeHead(403, { 'Content-Type': 'text/plain' });
-                    res.end('Blocked: Malicious HTML detected in proxied response.');
-                    return;
-                }
-                const inlineScripts = extractInlineScripts(dom);
-                if (inlineScripts.some(js => containsMaliciousKeyword(js))) {
-                    res.writeHead(403, { 'Content-Type': 'text/plain' });
-                    res.end('Blocked: Malicious JavaScript detected in proxied response.');
-                    return;
-                }
-
-                res.writeHead(proxyRes.statusCode, proxyRes.headers);
-                res.end(DomUtils.getOuterHTML(dom));
-            } else {
-                res.writeHead(proxyRes.statusCode, proxyRes.headers);
-                res.end(buffer);
-            }
-        });
+        clientRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.on('data', (chunk) => clientRes.write(chunk));
+        proxyRes.on('end', () => clientRes.end());
+      } catch (error) {
+        console.log('Error in proxyReq cb in http server: ', error.message);
+        clientRes.end('Error in proxyReq cb in http server');
+      }
     });
 
-    proxyReq.on('error', err => {
-        res.writeHead(500);
-        res.end('Proxy error: ' + err.message);
+    proxyReq.on('error', (err) => {
+      console.error('proxyReq error:', err);
+      clientRes.writeHead(502);
+      clientRes.end('Bad Gateway');
     });
 
-    req.pipe(proxyReq);
-}
-
-export default httpHandler;
+    clientReq.on('data', (chunk) => proxyReq.write(chunk));
+    clientReq.on('end', () => proxyReq.end());
+  }
+};

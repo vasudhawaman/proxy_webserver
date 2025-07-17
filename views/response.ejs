@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Site Safety Check</title>
-</head>
-<body>
-  <h1>Protocol: <%= protocol %> <%= protocol === 'http' ? '(Not Secure)' : '(Secure)' %></h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Site Safety Check</title>
+  </head>
+  <body>
+    <% if(checking) {%>
+    <h1>
+      Protocol: <%= protocol %> <%= protocol === 'http' ? '(Not Secure)' :
+      '(Secure)' %>
+    </h1>
 
-  <h2>Google Safe Browsing:</h2>
-  <p><%= googleApiResult === 'safe' ? 'No threats detected ✅' : 'Threat detected ❌' %></p>
+    <h2>Google Safe Browsing:</h2>
+    <p>
+      <%= googleApiResult === 'safe' ? 'No threats detected ✅' : 'Threatdetected ❌' %>
+    </p>
 
-  <h2>Security Header Score:</h2>
-  <p><%= headerScore %>%</p>
-  <p><strong>Header Analysis:</strong> <%= headerMessage %></p>
+    <h2>Security Header Score:</h2>
+    <p><%= headerScore %>%</p>
+    <p><strong>Header Analysis:</strong> <%= headerMessage %></p>
 
-  <% if (missingHeaders && missingHeaders.length > 0) { %>
+    <% if (missingHeaders && missingHeaders.length > 0) { %>
     <p><strong>Missing Headers:</strong></p>
     <ul>
       <% missingHeaders.forEach(header => { %>
-        <li><%= header %></li>
+      <li><%= header %></li>
       <% }); %>
     </ul>
-  <% } else { %>
+    <% } else { %>
     <p><strong>All recommended headers are present.</strong></p>
-  <% } %>
+    <% } %> 
+    <% if(sslTlsStatus && sslDetails) {%>
+    <h2>SSL/TLS Status:</h2>
+    <p><%= sslTlsStatus %></p>
 
-  <% if(sslTlsStatus && sslDetails) {%>
-  <h2>SSL/TLS Status:</h2>
-  <p><%= sslTlsStatus %></p>
-
-  <% if (sslDetails && Object.keys(sslDetails).length > 0) { %>
+    <% if (sslDetails && Object.keys(sslDetails).length > 0) { %>
     <h3>Certificate Details:</h3>
     <ul>
       <li><strong>Subject:</strong> <%= sslDetails.subject.CN || 'N/A' %></li>
@@ -38,15 +43,40 @@
       <li><strong>Valid From:</strong> <%= sslDetails.valid_from %></li>
       <li><strong>Valid To:</strong> <%= sslDetails.valid_to %></li>
     </ul>
-  <% } %>
-  <% } %>
-  
-  <p>
-    <a href="/">⬅ Back</a>
-    &nbsp;&nbsp;
-    <% if(visit) {%>
-    <a href="<%= redirectTo %>?continue=true">Visit Website</a>
+    <% } %> 
     <% } %>
-  </p>
-</body>
+
+    <button onclick="sendFeedback('safe')">Mark as Safe</button>
+    <button onclick="sendFeedback('unsafe')">Mark as Unsafe</button>
+
+    <p>
+      <a href="/">⬅ Back</a>
+      &nbsp;&nbsp; 
+      <% if(visit) { %>
+        <a id="visit-link" href="<%= redirectTo %>?continue=true">Visit Website</a>
+      <% } %>
+    </p>
+    <% }else {%>
+    <h1><%= checkMsg %></h1>
+    <% } %>
+
+  <script>
+    function sendFeedback(status) {
+      fetch('http://localhost:3000/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: '<%= redirectTo %>', status }),
+      });
+
+      if (status === 'unsafe') {
+        // Hide the "Visit Website" link
+        const visitLink = document.getElementById('visit-link');
+        if (visitLink) {
+          visitLink.style.display = 'none';
+        }
+      }
+    }
+  </script>
+
+  </body>
 </html>

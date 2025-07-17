@@ -2,8 +2,14 @@
   "manifest_version": 3,
   "name": "The Cloak",
   "version": "1.0",
-  "permissions": ["proxy", "storage"],
-  "host_permissions": ["<all_urls>"],
+  "description": "A proxy-based security analyzer and feedback tool.",
+  "permissions": [
+    "proxy",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Toggle Proxy"
