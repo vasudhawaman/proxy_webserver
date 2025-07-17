@@ -3,83 +3,12 @@ import https from 'https';
 import path from 'path';
 import fs from 'fs/promises';
 import { parseDocument, DomUtils } from 'htmlparser2';
-import { parse as parseJS } from 'acorn';
-import * as acornWalk from 'acorn-walk';
-
-// Helper to check if the request is a direct HTML file
-function isHtmlFile(urlPath) {
-    return path.extname(urlPath).toLowerCase() === '.html';
-}
-
-// Helper to extract inline scripts from a DOM
-function extractInlineScripts(dom) {
-    return DomUtils.findAll(
-        elem => elem.name === 'script' && !elem.attribs?.src,
-        dom.children || []
-    ).map(scriptElem =>
-        scriptElem.children && scriptElem.children[0] && scriptElem.children[0].data
-            ? scriptElem.children[0].data
-            : ''
-    ).filter(Boolean);
-}
-
-// Helper to scan JavaScript for suspicious keywords using Acorn AST (just like in httpsHandler)
-function containsMaliciousKeyword(jsCode) {
-    const suspiciousKeywords = [
-        'eval', 'Function', 'setInterval', 'setTimeout',
-        'document', 'window', 'XMLHttpRequest', 'fetch', 'WebSocket',
-        'importScripts', 'Worker', 'atob', 'btoa'
-    ];
-    try {
-        const ast = parseJS(jsCode, { ecmaVersion: 2020 });
-        let found = false;
-        acornWalk.simple(ast, {
-            Identifier(node) {
-                if (suspiciousKeywords.includes(node.name)) {
-                    found = true;
-                }
-            },
-            MemberExpression(node) {
-                if (node.object && node.property) {
-                    const objectName = node.object.name || '';
-                    const propName = node.property.name || '';
-                    if (suspiciousKeywords.includes(objectName) || suspiciousKeywords.includes(propName)) {
-                        found = true;
-                    }
-                }
-            }
-        });
-        return found;
-    } catch (e) {
-        // If parsing fails (e.g., obfuscated code), treat as suspicious
-        return true;
-    }
-}
-
-// Helper to scan HTML for suspicious tags and attributes
-function containsMaliciousHtml(dom) {
-    const suspiciousTags = ['iframe', 'object', 'embed', 'link', 'base'];
-    const suspiciousAttrs = [
-        /^on/i, // inline event handlers: onclick, onerror, etc.
-        /^srcdoc$/i,
-        /^src$/i,
-        /^data$/i
-    ];
-    let found = false;
-
-    function scan(node) {
-        if (node.type === 'tag') {
-            if (suspiciousTags.includes(node.name)) found = true;
-            for (const [attr, val] of Object.entries(node.attribs || {})) {
-                if (suspiciousAttrs.some(regex => regex.test(attr))) found = true;
-                if ((attr === 'src' || attr === 'data') && /javascript:|data:text\/html/i.test(val)) found = true;
-            }
-        }
-        if (node.children) for (const child of node.children) scan(child);
-    }
-    for (const node of dom.children || []) scan(node);
-    return found;
-}
+import {
+    isHtmlFile,
+    extractInlineScripts,
+    containsMaliciousKeyword,
+    containsMaliciousHtml
+} from './parser.js';
 
 async function serveStaticHtml(filePath, res) {
     try {
@@ -108,7 +37,7 @@ async function serveStaticHtml(filePath, res) {
 }
 
 async function httpHandler(req, res) {
-    const targetUrl = req.url; // adjust if you use a proxy mapping
+    const targetUrl = req.url;
     const parsedUrl = new URL(targetUrl, `http://${req.headers.host}`);
     const urlPath = parsedUrl.pathname;
 
