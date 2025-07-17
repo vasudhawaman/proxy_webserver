@@ -6,51 +6,15 @@ import { renderEjs } from '../utils/render.js';
 import { useGoogleAPI } from '../utils/googleSafeBrowsing.js';
 import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
-import { Parser } from 'htmlparser2';
 
-// List of malicious patterns for HTML
-const MALICIOUS_HTML_PATTERNS = [
-  { name: '<script>', regex: /<script[\s>]/gi },
-  { name: 'javascript:', regex: /javascript:/gi },
-  { name: 'inline event handler', regex: /on\w+\s*=/gi },
-  { name: '<iframe>', regex: /<iframe[\s>]/gi }
-  // Add more as needed
-];
-
-// List of malicious patterns for JavaScript
-const MALICIOUS_JS_PATTERNS = [
-  { name: 'eval', regex: /\beval\s*\(/gi },
-  { name: 'Function constructor', regex: /\bnew Function\s*\(/gi },
-  { name: 'setTimeout string', regex: /setTimeout\s*\(\s*['"`]/gi },
-  { name: 'setInterval string', regex: /setInterval\s*\(\s*['"`]/gi },
-  { name: 'document.write', regex: /document\.write\s*\(/gi },
-  { name: 'window.location', regex: /window\.location\s*=/gi },
-  { name: 'script src', regex: /src\s*=\s*['"`].*\.js['"`]/gi },
-  { name: 'XMLHttpRequest', regex: /XMLHttpRequest/gi },
-  { name: 'fetch(', regex: /\bfetch\s*\(/gi }
-  // Add more as needed
-];
-
-function countMaliciousPatterns(text, patterns) {
-  let total = 0;
-  let found = [];
-  patterns.forEach(pattern => {
-    const matches = text.match(pattern.regex);
-    if (matches) {
-      total += matches.length;
-      found.push({ name: pattern.name, count: matches.length });
-    }
-  });
-  return { total, found };
-}
-
-function isLikelyJS(contentType, path) {
-  if (!contentType && !path) return false;
-  if (contentType && contentType.includes('application/javascript')) return true;
-  if (contentType && contentType.includes('text/javascript')) return true;
-  if (path && path.match(/\.js(\?.*)?$/i)) return true;
-  return false;
-}
+import {
+  MALICIOUS_HTML_PATTERNS,
+  MALICIOUS_JS_PATTERNS,
+  countMaliciousPatterns,
+  generateHtmlWarning,
+  generateJsWarning,
+  isLikelyJS
+} from './parsers.js';
 
 export const handleHttpsConnect = (req, clientSocket, head) => {
   clientSocket.on('error', (err) => {
@@ -111,7 +75,6 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
           const isHTML = contentType.includes('text/html');
 
           if (isHTML || isJS) {
-            // Buffer the proxy response
             let bodyChunks = [];
             proxyRes.on('data', chunk => {
               bodyChunks.push(chunk);
@@ -122,25 +85,14 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
 
               if (isHTML) {
                 result = countMaliciousPatterns(body, MALICIOUS_HTML_PATTERNS);
-                if (result.total > 0) {
-                  warningText = `<div style="background:#ffdddd;border:1px solid #ff8888;padding:1em;margin-bottom:1em;">
-                    <strong>Warning:</strong> Detected <b>${result.total}</b> potentially malicious HTML keyword(s) in this response.<br>
-                    ${result.found.map(f => `<span>${f.name}: ${f.count}</span>`).join('<br>')}
-                  </div>`;
-                }
+                warningText = generateHtmlWarning(result);
               } else if (isJS) {
                 result = countMaliciousPatterns(body, MALICIOUS_JS_PATTERNS);
-                if (result.total > 0) {
-                  warningText = `/* WARNING: Detected ${result.total} potentially malicious JavaScript keyword(s):\n` +
-                                result.found.map(f => `   - ${f.name}: ${f.count}`).join('\n') +
-                                '\n*/\n';
-                }
+                warningText = generateJsWarning(result);
               }
 
               httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
-              if (isJS && result.total > 0) {
-                httpsRes.end(warningText + body);
-              } else if (isHTML && result.total > 0) {
+              if ((isJS || isHTML) && result && result.total > 0) {
                 httpsRes.end(warningText + body);
               } else {
                 httpsRes.end(body);
@@ -152,7 +104,6 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
               httpsRes.end('Bad Gateway');
             });
           } else {
-            // Non-HTML/JS: stream as usual
             httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
             proxyRes.pipe(httpsRes);
           }
