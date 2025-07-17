@@ -1,23 +1,39 @@
-const toggleBtn = document.getElementById('toggleBtn');
-const submitBtn = document.getElementById('submitUrl');
+const proxyToggle = document.getElementById('proxy-toggle');
+const parserToggleBtn = document.getElementById('parser-toggle');
 const urlInput = document.getElementById('urlInput');
+const submitBtn = document.getElementById('submitUrl');
+
+// Set initial parser toggle state
+chrome.storage.local.get('isParserActive', ({ isParserActive }) => {
+  parserToggleBtn.checked = isParserActive === true;
+});
+
+parserToggleBtn.addEventListener('change', async () => {
+  const newParserState = parserToggleBtn.checked;
+  await chrome.storage.local.set({ isParserActive: newParserState });
+});
 
 // Set initial toggle button state
 chrome.storage.local.get('isProxyActive', ({ isProxyActive }) => {
-  toggleBtn.textContent = isProxyActive ? 'Deactivate Proxy' : 'Activate Proxy';
+  proxyToggle.textContent = isProxyActive
+    ? 'Deactivate Proxy'
+    : 'Activate Proxy';
 });
 
-// Toggle proxy button logic
-toggleBtn.addEventListener('click', async () => {
+proxyToggle.addEventListener('click', async () => {
   const { isProxyActive } = await chrome.storage.local.get('isProxyActive');
-  const newState = !isProxyActive;
+  const newProxyState = !isProxyActive;
 
-  await chrome.storage.local.set({ isProxyActive: newState });
-  toggleBtn.textContent = newState ? 'Deactivate Proxy' : 'Activate Proxy';
+  await chrome.storage.local.set({ isProxyActive: newProxyState });
+  proxyToggle.textContent = newProxyState
+    ? 'Deactivate Proxy'
+    : 'Activate Proxy';
 
-  if (toggleBtn.textContent === 'Activate Proxy') {
+  const { isParserActive } = await chrome.storage.local.get('isParserActive');
+
+  if (proxyToggle.textContent === 'Activate Proxy') {
     try {
-      const response = await fetch('http://localhost:3000/api/feedback', {
+      const response = await fetch('http://localhost:3000/feedback', {
         method: 'DELETE',
       });
 
@@ -34,7 +50,8 @@ toggleBtn.addEventListener('click', async () => {
 
   chrome.runtime.sendMessage({
     type: 'TOGGLE_PROXY',
-    active: newState,
+    active: newProxyState,
+    parserEnabled: isParserActive,
   });
 });
 
@@ -49,14 +66,14 @@ submitBtn.addEventListener('click', () => {
     url: inputUrl,
   });
 
-  urlInput.value = ''; // optional: clear input after submit
+  urlInput.value = ''; // clear input after submit
 });
 
 document
   .getElementById('get-feedback-btn')
   .addEventListener('click', async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/feedback');
+      const response = await fetch('http://localhost:3000/feedback');
       const feedbackList = await response.json();
 
       const ul = document.getElementById('feedback-list');

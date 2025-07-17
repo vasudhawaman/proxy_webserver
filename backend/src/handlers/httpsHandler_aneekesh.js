@@ -13,8 +13,8 @@ import {
   countMaliciousPatterns,
   generateHtmlWarning,
   generateJsWarning,
-  isLikelyJS
-} from './parsers.js';
+  isLikelyJS,
+} from '../parser/parsers.js';
 
 export const handleHttpsConnect = (req, clientSocket, head) => {
   clientSocket.on('error', (err) => {
@@ -76,12 +76,13 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
 
           if (isHTML || isJS) {
             let bodyChunks = [];
-            proxyRes.on('data', chunk => {
+            proxyRes.on('data', (chunk) => {
               bodyChunks.push(chunk);
             });
             proxyRes.on('end', () => {
               const body = Buffer.concat(bodyChunks).toString('utf-8');
-              let result, warningText = '';
+              let result,
+                warningText = '';
 
               if (isHTML) {
                 result = countMaliciousPatterns(body, MALICIOUS_HTML_PATTERNS);

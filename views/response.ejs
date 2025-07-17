@@ -14,7 +14,8 @@
 
     <h2>Google Safe Browsing:</h2>
     <p>
-      <%= googleApiResult === 'safe' ? 'No threats detected ✅' : 'Threatdetected ❌' %>
+      <%= googleApiResult === 'safe' ? 'No threats detected ✅' :
+      'Threatdetected ❌' %>
     </p>
 
     <h2>Security Header Score:</h2>
@@ -30,8 +31,7 @@
     </ul>
     <% } else { %>
     <p><strong>All recommended headers are present.</strong></p>
-    <% } %> 
-    <% if(sslTlsStatus && sslDetails) {%>
+    <% } %> <% if(sslTlsStatus && sslDetails) {%>
     <h2>SSL/TLS Status:</h2>
     <p><%= sslTlsStatus %></p>
 
@@ -43,40 +43,38 @@
       <li><strong>Valid From:</strong> <%= sslDetails.valid_from %></li>
       <li><strong>Valid To:</strong> <%= sslDetails.valid_to %></li>
     </ul>
-    <% } %> 
-    <% } %>
+    <% } %> <% } %>
 
     <button onclick="sendFeedback('safe')">Mark as Safe</button>
     <button onclick="sendFeedback('unsafe')">Mark as Unsafe</button>
 
     <p>
-      <a href="/">⬅ Back</a>
-      &nbsp;&nbsp; 
       <% if(visit) { %>
-        <a id="visit-link" href="<%= redirectTo %>?continue=true">Visit Website</a>
+      <a id="visit-link" href="<%= redirectTo %>?continue=true"
+        >Visit Website</a
+      >
       <% } %>
     </p>
     <% }else {%>
     <h1><%= checkMsg %></h1>
     <% } %>
 
-  <script>
-    function sendFeedback(status) {
-      fetch('http://localhost:3000/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: '<%= redirectTo %>', status }),
-      });
+    <script>
+      function sendFeedback(status) {
+        fetch('http://localhost:3000/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: '<%= redirectTo %>', status }),
+        });
 
-      if (status === 'unsafe') {
-        // Hide the "Visit Website" link
-        const visitLink = document.getElementById('visit-link');
-        if (visitLink) {
-          visitLink.style.display = 'none';
+        if (status === 'unsafe') {
+          // Hide the "Visit Website" link
+          const visitLink = document.getElementById('visit-link');
+          if (visitLink) {
+            visitLink.style.display = 'none';
+          }
         }
       }
-    }
-  </script>
-
+    </script>
   </body>
 </html>

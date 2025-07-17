@@ -60,7 +60,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
           // Only show response page if ?continue is not present
           if (
             !parsedUrl.query.continue &&
-            !(getFeedbackStatus(fullUrl) === 'safe')
+            getFeedbackStatus(fullUrl) === undefined
           ) {
             // SSL certificate extraction
             const { sslTlsStatus, sslDetails } = checkSSL(proxyRes);

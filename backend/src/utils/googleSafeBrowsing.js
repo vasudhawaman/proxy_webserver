@@ -2,7 +2,7 @@ import https from 'https';
 import dotenv from 'dotenv';
 dotenv.config();
 
-function useGoogleAPI(targetedURL) {
+export function useGoogleAPI(targetedURL) {
   const postData = JSON.stringify({
     client: {
       clientId: 'proxyServer-IITI',
@@ -52,5 +52,3 @@ function useGoogleAPI(targetedURL) {
     googleReq.end();
   });
 }
-
-export { useGoogleAPI };

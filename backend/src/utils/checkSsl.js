@@ -1,4 +1,4 @@
-export const checkSSL = (serverRes) => {
+export function checkSSL(serverRes) {
   const cert = serverRes.socket.getPeerCertificate();
   let sslTlsStatus = 'Valid SSL certificate';
   let sslDetails = {};
@@ -27,5 +27,5 @@ export const checkSSL = (serverRes) => {
     }
   }
 
-  return {sslTlsStatus,sslDetails}
-};
+  return { sslTlsStatus, sslDetails };
+}

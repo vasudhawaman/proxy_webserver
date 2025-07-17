@@ -1,8 +1,8 @@
 import http from 'http';
-import { handleHttpRequest } from './handlers/httpHandler_aneekesh.js';
-import { handleHttpsConnect } from './handlers/httpsHandler_aneekesh.js';
+import { handleHttpRequest } from './handlers/httpHandler.js';
+import { handleHttpsConnect } from './handlers/httpsHandler.js';
 import { attachGlobalErrorHandlers } from './errorHandlers/globalErrors.js';
-import 'dotenv/config'
+import 'dotenv/config';
 
 const PORT = process.env.PORT;
 const httpServer = http.createServer(handleHttpRequest);

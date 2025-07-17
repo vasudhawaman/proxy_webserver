@@ -1,10 +1,10 @@
-import { addFeedback, clearFeedback, getFeedback } from "../utils/feedback.js";
+import { addFeedback, clearFeedback, getFeedback } from '../utils/feedback.js';
 
 export const feedbackHandler = async (clientReq, clientRes) => {
   if (clientReq.method === 'POST') {
     let body = '';
 
-    clientReq.on('data', chunk => {
+    clientReq.on('data', (chunk) => {
       body += chunk;
     });
 

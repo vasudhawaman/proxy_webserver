@@ -2,11 +2,15 @@
 <html>
   <head> </head>
   <body>
-    <button id="toggleBtn">Activate Proxy</button>
+    <button id="proxy-toggle">Activate Proxy</button>
+    <label>
+      <input type="checkbox" id="parser-toggle" />
+      Enable Parser
+    </label>
 
     <input type="text" id="urlInput" placeholder="Enter URL to inspect" />
-    <button id="submitUrl">Send URL</button>
-    
+    <button id="submitUrl">Check Safety</button>
+
     <button id="get-feedback-btn">Get Feedback</button>
     <ul id="feedback-list"></ul>
     <script src="popup.js"></script>

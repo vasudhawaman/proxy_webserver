@@ -9,7 +9,7 @@ import { useGoogleAPI } from './googleSafeBrowsing.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-function renderEjs(res, valueObj) {
+export function renderEjs(res, valueObj) {
   try {
     ejs.renderFile(
       path.join(__dirname, '..', '..', '..', 'views', 'response.ejs'),
@@ -32,7 +32,14 @@ function renderEjs(res, valueObj) {
   }
 }
 
-async function setupHttpEjs(url, serverRes, clientRes, isVisit, checking,checkMsg) {
+export async function setupHttpEjs(
+  url,
+  serverRes,
+  clientRes,
+  isVisit,
+  checking,
+  checkMsg
+) {
   let valueObj = {};
   if (checking) {
     const googleApiResult = await useGoogleAPI(url);
@@ -53,10 +60,10 @@ async function setupHttpEjs(url, serverRes, clientRes, isVisit, checking,checkMs
     };
   } else {
     valueObj = {
-      checking, 
+      checking,
       checkMsg,
-      protocol:null,
-      googleApiResult:null,
+      protocol: null,
+      googleApiResult: null,
       headerScore: null,
       headerMessage: null,
       missingHeaders: null,
@@ -69,5 +76,3 @@ async function setupHttpEjs(url, serverRes, clientRes, isVisit, checking,checkMs
 
   return renderEjs(clientRes, valueObj);
 }
-
-export { renderEjs, setupHttpEjs };

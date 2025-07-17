@@ -8,6 +8,8 @@ import { checkSSL } from '../utils/checkSsl.js';
 import { feedbackHandler } from './feedbackHandler.js';
 import { getFeedbackStatus } from '../utils/feedback.js';
 
+let isParserActive = false; // By default off
+
 export const handleHttpRequest = async (clientReq, clientRes) => {
   clientReq.on('error', (err) => {
     console.error('clientReq error:', err.message);
@@ -33,18 +35,39 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
   let fullUrl = '';
   let options = {};
 
-  if (parsedUrl.pathname === '/api/feedback') {
-    return feedbackHandler(clientReq, clientRes);
-  }
+  if (parsedUrl.pathname === '/parser-state' && clientReq.method === 'POST') {
+    //Retrieveing isParserActive
+    let body = '';
 
-  if (parsedUrl.pathname === '/inspect' && parsedUrl.query.manual === '1') {
+    clientReq.on('data', (chunk) => {
+      body += chunk;
+    });
+
+    clientReq.on('end', () => {
+      try {
+        const parsed = JSON.parse(body);
+        isParserActive = parsed.isParserActive;
+        clientRes.writeHead(201, { 'Content-Type': 'text/plain' });
+        clientRes.end('State Received');
+      } catch (err) {
+        console.error('Invalid JSON:', err);
+        clientRes.writeHead(400, { 'Content-Type': 'text/plain' });
+        clientRes.end('Invalid JSON');
+      }
+    });
+
+    return;
+  } else if (parsedUrl.pathname === '/feedback') {
+    //Handling Logging
+    return feedbackHandler(clientReq, clientRes);
+  } else if (parsedUrl.pathname === '/manual') {
     // handling manual input
     const inputUrl = url.parse(parsedUrl.query.url); // ← Parse the actual input URL
-    
-    if(parsedUrl.query.url.endsWith('/')){
-      fullUrl = parsedUrl.query.url 
-    }else{
-      fullUrl = parsedUrl.query.url + '/'
+
+    if (parsedUrl.query.url.endsWith('/')) {
+      fullUrl = parsedUrl.query.url;
+    } else {
+      fullUrl = parsedUrl.query.url + '/';
     }
 
     switch (getFeedbackStatus(fullUrl)) {
@@ -108,8 +131,8 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
           const { sslTlsStatus, sslDetails } = checkSSL(serverRes);
 
           const valueObj = {
-            checking:true,
-            checkMsg:'',
+            checking: true,
+            checkMsg: '',
             protocol: 'https',
             googleApiResult,
             headerScore: headersResult.headersScore,
@@ -141,6 +164,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
       clientReq.on('end', () => serverReq.end());
     }
   } else {
+    //Actual proxy logic
     options = {
       hostname: parsedUrl.hostname,
       port: parsedUrl.port || 80,
@@ -153,6 +177,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
     const proxyReq = http.request(options, async (proxyRes) => {
       try {
         // DONT CHNAGE THE SEQUENCE OF IF BLOCKS
+
         if (getFeedbackStatus(fullUrl) === 'unsafe') {
           return setupHttpEjs(
             null,
@@ -166,7 +191,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
 
         if (
           !parsedUrl.query.continue &&
-          !(getFeedbackStatus(fullUrl) === 'safe')
+          getFeedbackStatus(fullUrl) === undefined
         ) {
           return setupHttpEjs(fullUrl, proxyRes, clientRes, true, true, '');
         }
