@@ -7,6 +7,7 @@ import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
 import { feedbackHandler } from './feedbackHandler.js';
 import { getFeedbackStatus } from '../utils/feedback.js';
+import { sendCertificate } from '../utils/sendCertificate.js';
 
 let isParserActive = false; // By default off
 
@@ -163,6 +164,11 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
       clientReq.on('data', (chunk) => serverReq.write(chunk));
       clientReq.on('end', () => serverReq.end());
     }
+  } else if (
+    parsedUrl.pathname === '/get-certificate' &&
+    clientReq.method === 'GET'
+  ) {
+    return sendCertificate(clientReq, clientRes);
   } else {
     //Actual proxy logic
     options = {
