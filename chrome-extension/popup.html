@@ -1,27 +1,64 @@
 <!DOCTYPE html>
-<html>
-  <head> </head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Proxy Setup</title>
+
+    <link rel="stylesheet" href="styles.css"/>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    
+  </head>
   <body>
-    <div>
+    <div class="container">
+      <!-- Heading -->
       <h3>
-        Please download and config the following ssl/tls certificate for proxy
-        to work
+        <i class="fas fa-shield-alt"></i>
+        Please download and configure the following SSL/TLS certificate for the
+        proxy to work:
       </h3>
+
+      <!-- Download certificate -->
       <a href="http://localhost:3000/get-certificate" download="rootCA.crt">
-        <button>Download certificate</button>
+        <button class="button">
+          <i class="fas fa-download"></i> Download Certificate
+        </button>
       </a>
+
+      <!-- Toggling Proxy -->
+      <button id="proxy-toggle" class="button">
+        <i class="fas fa-plug"></i> Activate Proxy
+      </button>
+
+      <label>
+        <input type="checkbox" id="parser-toggle" />
+        <i class="fas fa-code"></i> Enable Parser
+      </label>
+
+      <!-- URL Input -->
+      <div class="input-group">
+        <label for="urlInput">
+          <i class="fas fa-link"></i> Enter URL to inspect:
+        </label>
+        <input type="text" id="urlInput" placeholder="https://example.com" />
+      </div>
+
+      <button id="submitUrl" class="button">
+        <i class="fas fa-lock"></i> Check Safety
+      </button>
+
+      <!-- Feedback -->
+      <button id="get-feedback-btn" class="button">
+        <i class="fas fa-comments"></i> Get Feedback
+      </button>
+
+      <ul id="feedback-list"></ul>
     </div>
-    <button id="proxy-toggle">Activate Proxy</button>
-    <label>
-      <input type="checkbox" id="parser-toggle" />
-      Enable Parser
-    </label>
 
-    <input type="text" id="urlInput" placeholder="Enter URL to inspect" />
-    <button id="submitUrl">Check Safety</button>
-
-    <button id="get-feedback-btn">Get Feedback</button>
-    <ul id="feedback-list"></ul>
     <script src="popup.js"></script>
   </body>
 </html>
