@@ -38,7 +38,8 @@ export async function setupHttpEjs(
   clientRes,
   isVisit,
   checking,
-  checkMsg
+  checkMsg,
+  parserResult
 ) {
   let valueObj = {};
   if (checking) {
@@ -57,6 +58,7 @@ export async function setupHttpEjs(
       sslDetails: null,
       redirectTo: url,
       visit: isVisit,
+      parserResult
     };
   } else {
     valueObj = {
@@ -71,6 +73,7 @@ export async function setupHttpEjs(
       sslDetails: null,
       redirectTo: url,
       visit: false,
+      parserResult
     };
   }
 

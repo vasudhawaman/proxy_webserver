@@ -20,19 +20,6 @@
 //         },
 //         () => console.log('Proxy enabled')
 //       );
-
-//       // Send parser state to backend
-//       fetch('http://localhost:3000/parser-state', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ parserState: message.parserEnabled }),
-//       })
-//         .then((res) =>
-//           res.ok
-//             ? console.log('Parser state sent to backend')
-//             : console.error('Failed to send parser state')
-//         )
-//         .catch((err) => console.error('Error sending parser state:', err));
 //     } else {
 //       chrome.proxy.settings.clear({ scope: 'regular' }, () => {
 //         console.log('Proxy disabled');
@@ -52,7 +39,7 @@
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'TOGGLE_PROXY') {
-    const { active, parserEnabled } = message;
+    const { active } = message;
 
     if (active) {
       chrome.proxy.settings.set(
@@ -62,7 +49,7 @@ chrome.runtime.onMessage.addListener((message) => {
             pacScript: {
               data: `
                 function FindProxyForURL(url, host) {
-                  if (host === "example.com" || host === "www.example.com") {
+                  if (host === "example.com" || host === "www.example.com" || host === 'httpbin.org') {
                     return 'PROXY localhost:3000';
                   }
                   return "DIRECT";
@@ -74,18 +61,6 @@ chrome.runtime.onMessage.addListener((message) => {
         },
         () => {
           console.log('Proxy enabled for example.com only');
-
-          fetch('http://localhost:3000/parser-state', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parserState: parserEnabled }),
-          })
-            .then((res) =>
-              res.ok
-                ? console.log('Parser state sent to backend')
-                : console.error('Failed to send parser state')
-            )
-            .catch((err) => console.error('Error sending parser state:', err));
         }
       );
     } else {

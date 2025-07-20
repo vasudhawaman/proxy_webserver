@@ -11,6 +11,17 @@ chrome.storage.local.get('isParserActive', ({ isParserActive }) => {
 parserToggleBtn.addEventListener('change', async () => {
   const newParserState = parserToggleBtn.checked;
   await chrome.storage.local.set({ isParserActive: newParserState });
+  fetch('http://localhost:3000/parser-state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isParserActive: newParserState }),
+  })
+    .then((res) =>
+      res.ok
+        ? console.log('Parser state sent to backend')
+        : console.error('Failed to send parser state')
+    )
+    .catch((err) => console.error('Error sending parser state:', err));
 });
 
 // Set initial toggle button state
@@ -28,8 +39,6 @@ proxyToggle.addEventListener('click', async () => {
   proxyToggle.textContent = newProxyState
     ? 'Deactivate Proxy'
     : 'Activate Proxy';
-
-  const { isParserActive } = await chrome.storage.local.get('isParserActive');
 
   if (proxyToggle.textContent === 'Activate Proxy') {
     try {
@@ -51,7 +60,6 @@ proxyToggle.addEventListener('click', async () => {
   chrome.runtime.sendMessage({
     type: 'TOGGLE_PROXY',
     active: newProxyState,
-    parserEnabled: isParserActive,
   });
 });
 

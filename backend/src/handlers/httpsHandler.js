@@ -1,12 +1,15 @@
 import https from 'https';
 import net from 'net';
 import url from 'url';
+import zlib from 'zlib';
 import { createFakeCert } from '../utils/createCert.js';
 import { renderEjs } from '../utils/render.js';
 import { useGoogleAPI } from '../utils/googleSafeBrowsing.js';
 import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
 import { getFeedbackStatus } from '../utils/feedback.js';
+import { isParserActive } from './httpHandler.js';
+import { detectMaliciousCode } from '../parser/htmlParser.js';
 
 export const handleHttpsConnect = (req, clientSocket, head) => {
   clientSocket.on('error', (err) => {
@@ -35,66 +38,179 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
 
         const fullUrl = `https://${options.hostname}${options.path}`;
         const proxyReq = https.request(options, async (proxyRes) => {
-          let valueObj = {};
+          try {
+            let valueObj = {};
 
-          // DONT CHNAGE THE SEQUENCE OF IF BLOCKS
-
-          if (getFeedbackStatus(fullUrl) === 'unsafe') {
-            valueObj = {
-              checking: false,
-              checkMsg: 'Website marked unsafe you cant continue',
-              protocol: null,
-              googleApiResult: null,
-              headerScore: null,
-              headerMessage: null,
-              missingHeaders: null,
-              sslTlsStatus: null,
-              sslDetails: null,
-              redirectTo: null,
-              visit: false,
-            };
-
-            return renderEjs(httpsRes, valueObj);
-          }
-
-          // Only show response page if ?continue is not present
-          if (
-            !parsedUrl.query.continue &&
-            getFeedbackStatus(fullUrl) === undefined
-          ) {
-            // SSL certificate extraction
+            //ssl has to be checked at most first cuz in parsing proxyRes socket is undefined to tackle that
             const { sslTlsStatus, sslDetails } = checkSSL(proxyRes);
-            const googleApiResult = await useGoogleAPI(fullUrl);
-            const headersResult = checkSecurityHeaders(
-              proxyRes.headers,
-              'https'
-            );
 
-            valueObj = {
-              checking: true,
-              checkMsg: '',
-              protocol: 'https',
-              googleApiResult,
-              headerScore: headersResult.headersScore,
-              headerMessage: headersResult.headersMessage,
-              missingHeaders: headersResult.missingHeaders,
-              sslTlsStatus,
-              sslDetails,
-              redirectTo: fullUrl,
-              visit: true,
-            };
+            if (!isParserActive) {
+              // DONT CHNAGE THE SEQUENCE OF IF BLOCKS
 
-            return renderEjs(httpsRes, valueObj);
+              if (getFeedbackStatus(fullUrl) === 'unsafe') {
+                valueObj = {
+                  checking: false,
+                  checkMsg: 'Website marked unsafe you cant continue',
+                  protocol: null,
+                  googleApiResult: null,
+                  headerScore: null,
+                  headerMessage: null,
+                  missingHeaders: null,
+                  sslTlsStatus: null,
+                  sslDetails: null,
+                  redirectTo: null,
+                  visit: false,
+                  parserResult: null,
+                };
+
+                return renderEjs(httpsRes, valueObj);
+              }
+
+              // Only show response page if ?continue is not present
+              if (
+                !parsedUrl.query.continue &&
+                getFeedbackStatus(fullUrl) === undefined
+              ) {
+                const googleApiResult = await useGoogleAPI(fullUrl);
+                const headersResult = checkSecurityHeaders(
+                  proxyRes.headers,
+                  'https'
+                );
+
+                valueObj = {
+                  checking: true,
+                  checkMsg: '',
+                  protocol: 'https',
+                  googleApiResult,
+                  headerScore: headersResult.headersScore,
+                  headerMessage: headersResult.headersMessage,
+                  missingHeaders: headersResult.missingHeaders,
+                  sslTlsStatus,
+                  sslDetails,
+                  redirectTo: fullUrl,
+                  visit: true,
+                  parserResult: null,
+                };
+
+                return renderEjs(httpsRes, valueObj);
+              }
+
+              httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+
+              proxyRes.on('data', (chunk) => {
+                httpsRes.write(chunk);
+              });
+              proxyRes.on('end', () => {
+                httpsRes.end();
+                httpsServer.close();
+              });
+              return;
+            }
+
+            // isParserActive = true
+
+            const headers = proxyRes.headers;
+
+            if (getFeedbackStatus(fullUrl) === 'unsafe') {
+              valueObj = {
+                checking: false,
+                checkMsg: 'Website marked unsafe you cant continue',
+                protocol: null,
+                googleApiResult: null,
+                headerScore: null,
+                headerMessage: null,
+                missingHeaders: null,
+                sslTlsStatus: null,
+                sslDetails: null,
+                redirectTo: null,
+                visit: false,
+                parserResult: null,
+              };
+
+              return renderEjs(httpsRes, valueObj);
+            }
+
+            if (headers['content-type']?.includes('text/html')) {
+              let body = '';
+              let stream = proxyRes;
+
+              const encoding = headers['content-encoding']?.toLowerCase();
+              if (encoding === 'gzip' || encoding === 'deflate') {
+                stream = proxyRes.pipe(zlib.createUnzip());
+              } else if (encoding === 'br') {
+                stream = proxyRes.pipe(zlib.createBrotliDecompress());
+              }
+
+              delete headers['content-encoding'];
+
+              stream.on('data', (chunk) => (body += chunk.toString()));
+              stream.on('end', async () => {
+                if (parsedUrl.query.continue) {
+                  httpsRes.writeHead(proxyRes.statusCode, headers);
+                  httpsRes.end(body);
+                } else if (getFeedbackStatus(fullUrl) === undefined) {
+                  // const { sslTlsStatus, sslDetails } = checkSSL(proxyRes);
+                  const googleApiResult = await useGoogleAPI(fullUrl);
+                  const headersResult = checkSecurityHeaders(
+                    proxyRes.headers,
+                    'https'
+                  );
+                  const parserResult = detectMaliciousCode(body);
+                  valueObj = {
+                    checking: true,
+                    checkMsg: '',
+                    protocol: 'https',
+                    googleApiResult,
+                    headerScore: headersResult.headersScore,
+                    headerMessage: headersResult.headersMessage,
+                    missingHeaders: headersResult.missingHeaders,
+                    sslTlsStatus,
+                    sslDetails,
+                    redirectTo: fullUrl,
+                    visit: true,
+                    parserResult,
+                  };
+
+                  return renderEjs(httpsRes, valueObj);
+                } else {
+                  httpsRes.writeHead(proxyRes.statusCode, headers);
+                  httpsRes.end(body);
+                }
+              });
+
+              stream.on('error', (err) => {
+                console.log('Decompression error: ', err);
+                if (!httpsRes.headersSent) {
+                  httpsRes.writeHead(500, { 'Content-Type': 'text/plain' });
+                }
+                httpsRes.end('Error during decompression');
+              });
+            } else {
+              httpsRes.writeHead(proxyRes.statusCode, headers);
+
+              proxyRes.on('data', (chunk) => {
+                httpsRes.write(chunk);
+              });
+
+              proxyRes.on('end', () => {
+                httpsRes.end();
+                httpsServer.close();
+              });
+            }
+          } catch (error) {
+            console.log('Proxy error:', error.message);
+            if (!httpsRes.headersSent) {
+              httpsRes.writeHead(500, { 'Content-Type': 'text/plain' });
+            }
+            httpsRes.end('Internal proxy error.');
           }
-
-          httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
-          proxyRes.pipe(httpsRes);
         });
 
         proxyReq.on('error', (err) => {
           console.error('proxyReq (HTTPS) error:', err.message);
           httpsRes.writeHead(502);
           httpsRes.end('Bad Gateway');
+          httpsServer.close();
         });
 
         httpsReq.pipe(proxyReq);

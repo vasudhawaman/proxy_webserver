@@ -45,14 +45,64 @@
     </ul>
     <% } %> <% } %>
 
+    <h3>Parse Result :</h3>
+    <% if (parserResult !== null) { %>
+    <div class="parser-results">
+      <p>
+        <strong>Total Malicious Code Count:</strong> <%=
+        parserResult.totalMaliciousCount %>
+      </p>
+
+      <h4>Detected Threats:</h4>
+      <% if (parserResult.detectedThreats && parserResult.detectedThreats.length> 0) { %>
+      <ul>
+        <% parserResult.detectedThreats.forEach(threat => { %>
+        <li><%= threat %></li>
+        <% }); %>
+      </ul>
+      <% } else { %>
+      <p>No specific threats detected.</p>
+      <% } %>
+
+      <h4>Categories Breakdown:</h4>
+      <% if (parserResult.categories) { %>
+      <ul>
+        <% for (const category in parserResult.categories) { %>
+        <li>
+          <strong
+            ><%= category.charAt(0).toUpperCase() +
+            category.slice(1).replace(/([A-Z])/g, ' $1') %>:
+          </strong>
+          <%= parserResult.categories[category] %>
+        </li>
+        <% } %>
+      </ul>
+      <% } else { %>
+      <p>No category breakdown available.</p>
+      <% } %>
+
+      <p>
+        <strong>Risk Level:</strong> <%=
+        parserResult.riskLevel.charAt(0).toUpperCase() +
+        parserResult.riskLevel.slice(1) %>
+      </p>
+      <p>
+        <strong>Timestamp:</strong> <%= new
+        Date(parserResult.timestamp).toLocaleString() %>
+      </p>
+    </div>
+    <% } else { %>
+    <p>Did not parse the response.</p>
+    <% } %>
+
     <button onclick="sendFeedback('safe')">Mark as Safe</button>
     <button onclick="sendFeedback('unsafe')">Mark as Unsafe</button>
 
     <p>
       <% if(visit) { %>
       <a id="visit-link" href="<%= redirectTo %>?continue=true"
-        >Visit Website</a
-      >
+        >Visit Website
+      </a>
       <% } %>
     </p>
     <% }else {%>
