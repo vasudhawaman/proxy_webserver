@@ -57,17 +57,6 @@
         parserResult.totalMaliciousCount %>
       </p>
 
-      <h4>Detected Threats:</h4>
-      <% if (parserResult.detectedThreats && parserResult.detectedThreats.length> 0) { %>
-      <ul>
-        <% parserResult.detectedThreats.forEach(threat => { %>
-        <li><%= threat %></li>
-        <% }); %>
-      </ul>
-      <% } else { %>
-      <p>No specific threats detected.</p>
-      <% } %>
-
       <h4>Categories Breakdown:</h4>
       <% if (parserResult.categories) { %>
       <ul>
@@ -114,21 +103,32 @@
     <% } %>
 
     <script>
-      function sendFeedback(status) {
-        fetch('http://localhost:3000/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: '<%= redirectTo %>', status }),
-        });
+  function sendFeedback(status) {
+    fetch('http://localhost:3000/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: '<%= redirectTo %>', status }),
+    });
 
-        if (status === 'unsafe') {
-          // Hide the "Visit Website" link
-          const visitLink = document.getElementById('visit-link');
-          if (visitLink) {
-            visitLink.style.display = 'none';
-          }
-        }
+    // Hide both buttons after selection
+    const safeBtn = document.querySelector('button[onclick*="safe"]');
+    const unsafeBtn = document.querySelector('button[onclick*="unsafe"]');
+
+    if (status === 'safe') {
+      unsafeBtn.style.display = 'none';
+    } else if (status === 'unsafe') {
+      safeBtn.style.display = 'none';
+    }
+
+    // Additionally hide the Visit link if marked unsafe
+    if (status === 'unsafe') {
+      const visitLink = document.getElementById('visit-link');
+      if (visitLink) {
+        visitLink.style.display = 'none';
       }
+    }
+  }
     </script>
+
   </body>
 </html>
