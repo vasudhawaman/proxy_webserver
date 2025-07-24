@@ -3,7 +3,7 @@
   "name": "The Cloak",
   "version": "1.0",
   "description": "A proxy-based security analyzer and feedback tool.",
-  "permissions": ["proxy", "storage"],
+  "permissions": ["proxy", "storage","tabs"],
   "host_permissions": ["http://localhost:3000/*"],
   "action": {
     "default_popup": "popup.html",

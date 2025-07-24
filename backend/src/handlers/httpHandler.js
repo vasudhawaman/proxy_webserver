@@ -5,13 +5,13 @@ import https from 'https';
 import zlib from 'zlib';
 
 import { useGoogleAPI } from '../utils/googleSafeBrowsing.js';
-import { renderEjs, setupHttpEjs } from '../utils/render.js';
+import { renderEjs } from '../utils/render.js';
 import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
 import { feedbackHandler } from './feedbackHandler.js';
 import { getFeedbackStatus } from '../utils/feedback.js';
 import { sendCertificate } from '../utils/sendCertificate.js';
-import { detectMaliciousCode } from '../parser/htmlParser.js';
+import { detectMaliciousHtml } from '../parser/htmlParser.js';
 
 // Exported so httpsHandler can access it
 export let isParserActive = false;
@@ -71,15 +71,20 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
   if (parsedUrl.pathname === '/manual') {
     const inputUrl = url.parse(parsedUrl.query.url);
     if (!inputUrl.hostname) {
-      return setupHttpEjs(
-        null,
-        null,
-        clientRes,
-        false,
-        false,
-        'Invalid URL provided for manual check.',
-        null
-      );
+      return renderEjs(clientRes, {
+        checking: false,
+        checkMsg: 'Invalid URL provided for manual check.',
+        protocol: null,
+        googleApiResult: null,
+        headerScore: null,
+        headerMessage: null,
+        missingHeaders: null,
+        sslTlsStatus: null,
+        sslDetails: null,
+        redirectTo: null,
+        visit: false,
+        parserResult: null,
+      });
     }
 
     fullUrl = parsedUrl.query.url.endsWith('/')
@@ -88,25 +93,35 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
 
     switch (getFeedbackStatus(fullUrl)) {
       case 'unsafe':
-        return setupHttpEjs(
-          null,
-          null,
-          clientRes,
-          false,
-          false,
-          'Website already marked as unsafe',
-          null
-        );
+        return renderEjs(clientRes, {
+          checking: false,
+          checkMsg: 'Website already marked as unsafe',
+          protocol: null,
+          googleApiResult: null,
+          headerScore: null,
+          headerMessage: null,
+          missingHeaders: null,
+          sslTlsStatus: null,
+          sslDetails: null,
+          redirectTo: null,
+          visit: false,
+          parserResult: null,
+        });
       case 'safe':
-        return setupHttpEjs(
-          null,
-          null,
-          clientRes,
-          false,
-          false,
-          'Website already marked safe',
-          null
-        );
+        return renderEjs(clientRes, {
+          checking: false,
+          checkMsg: 'Website already marked safe.',
+          protocol: null,
+          googleApiResult: null,
+          headerScore: null,
+          headerMessage: null,
+          missingHeaders: null,
+          sslTlsStatus: null,
+          sslDetails: null,
+          redirectTo: null,
+          visit: false,
+          parserResult: null,
+        });
     }
 
     const protocol = inputUrl.protocol?.replace(':', '') || 'http';
@@ -130,8 +145,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
           protocol === 'https' && serverRes.socket
             ? checkSSL(serverRes)
             : { sslTlsStatus: null, sslDetails: null };
-
-        const valueObj = {
+        return renderEjs(clientRes, {
           checking: true,
           checkMsg: '',
           protocol,
@@ -144,9 +158,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
           redirectTo: fullUrl,
           visit: false,
           parserResult: null,
-        };
-
-        return renderEjs(clientRes, valueObj);
+        });
       } catch (error) {
         console.log('Error in manual handler:', error.message);
         if (!clientRes.headersSent) {
@@ -182,30 +194,43 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
     try {
       if (!isParserActive) {
         if (getFeedbackStatus(fullUrl) === 'unsafe') {
-          return setupHttpEjs(
-            null,
-            null,
-            clientRes,
-            false,
-            false,
-            'Website marked unsafe you cant continue',
-            null
-          );
+          return renderEjs(clientRes, {
+            checking: false,
+            checkMsg: 'Website marked unsafe you cant continue.',
+            protocol: null,
+            googleApiResult: null,
+            headerScore: null,
+            headerMessage: null,
+            missingHeaders: null,
+            sslTlsStatus: null,
+            sslDetails: null,
+            redirectTo: null,
+            visit: false,
+            parserResult: null,
+          });
         }
 
         if (
           !parsedUrl.query.continue &&
           getFeedbackStatus(fullUrl) === undefined
         ) {
-          return setupHttpEjs(
-            fullUrl,
-            proxyRes,
-            clientRes,
-            true,
-            true,
-            '',
-            null
-          );
+          const googleApiResult = await useGoogleAPI(fullUrl);
+          const headersResult = checkSecurityHeaders(proxyRes.headers, 'http');
+
+          return renderEjs(clientRes, {
+            checking: true,
+            checkMsg: '',
+            protocol: 'http',
+            googleApiResult,
+            headerScore: headersResult.headersScore,
+            headerMessage: headersResult.headersMessage,
+            missingHeaders: headersResult.missingHeaders,
+            sslTlsStatus: null,
+            sslDetails: null,
+            redirectTo: fullUrl,
+            visit: true,
+            parserResult: null,
+          });
         }
 
         clientRes.writeHead(proxyRes.statusCode, proxyRes.headers);
@@ -216,15 +241,20 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
       const headers = proxyRes.headers;
 
       if (getFeedbackStatus(fullUrl) === 'unsafe') {
-        return setupHttpEjs(
-          null,
-          null,
-          clientRes,
-          false,
-          false,
-          'Website marked unsafe you cant continue',
-          null
-        );
+        return renderEjs(clientRes, {
+          checking: false,
+          checkMsg: 'Website marked unsafe you cant continue.',
+          protocol: null,
+          googleApiResult: null,
+          headerScore: null,
+          headerMessage: null,
+          missingHeaders: null,
+          sslTlsStatus: null,
+          sslDetails: null,
+          redirectTo: null,
+          visit: false,
+          parserResult: null,
+        });
       }
 
       if (headers['content-type']?.includes('text/html')) {
@@ -241,21 +271,31 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
         delete headers['content-length'];
 
         stream.on('data', (chunk) => (body += chunk.toString()));
-        stream.on('end', () => {
+        stream.on('end', async () => {
           if (parsedUrl.query.continue) {
             clientRes.writeHead(proxyRes.statusCode, headers);
             clientRes.end(body);
           } else if (getFeedbackStatus(fullUrl) === undefined) {
-            const parserResult = detectMaliciousCode(body);
-            return setupHttpEjs(
-              fullUrl,
-              proxyRes,
-              clientRes,
-              true,
-              true,
-              '',
-              parserResult
+            const googleApiResult = await useGoogleAPI(url);
+            const headersResult = checkSecurityHeaders(
+              proxyRes.headers,
+              'http'
             );
+            const parserResult = detectMaliciousHtml(body);
+            return renderEjs(clientRes, {
+              checking: true,
+              checkMsg: '',
+              protocol: 'http',
+              googleApiResult,
+              headerScore: headersResult.headersScore,
+              headerMessage: headersResult.headersMessage,
+              missingHeaders: headersResult.missingHeaders,
+              sslTlsStatus: null,
+              sslDetails: null,
+              redirectTo: null,
+              visit: true,
+              parserResult,
+            });
           } else {
             clientRes.writeHead(proxyRes.statusCode, headers);
             clientRes.end(body);

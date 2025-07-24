@@ -9,7 +9,7 @@ import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
 import { getFeedbackStatus } from '../utils/feedback.js';
 import { isParserActive } from './httpHandler.js';
-import { detectMaliciousCode } from '../parser/htmlParser.js';
+import { detectMaliciousHtml } from '../parser/htmlParser.js';
 
 export const handleHttpsConnect = (req, clientSocket, head) => {
   clientSocket.on('error', (err) => {
@@ -39,8 +39,6 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
         const fullUrl = `https://${options.hostname}${options.path}`;
         const proxyReq = https.request(options, async (proxyRes) => {
           try {
-            let valueObj = {};
-
             //ssl has to be checked at most first cuz in parsing proxyRes socket is undefined to tackle that
             const { sslTlsStatus, sslDetails } = checkSSL(proxyRes);
 
@@ -48,7 +46,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
               // DONT CHNAGE THE SEQUENCE OF IF BLOCKS
 
               if (getFeedbackStatus(fullUrl) === 'unsafe') {
-                valueObj = {
+                return renderEjs(httpsRes, {
                   checking: false,
                   checkMsg: 'Website marked unsafe you cant continue',
                   protocol: null,
@@ -61,9 +59,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                   redirectTo: null,
                   visit: false,
                   parserResult: null,
-                };
-
-                return renderEjs(httpsRes, valueObj);
+                });
               }
 
               // Only show response page if ?continue is not present
@@ -77,7 +73,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                   'https'
                 );
 
-                valueObj = {
+                return renderEjs(httpsRes, {
                   checking: true,
                   checkMsg: '',
                   protocol: 'https',
@@ -90,9 +86,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                   redirectTo: fullUrl,
                   visit: true,
                   parserResult: null,
-                };
-
-                return renderEjs(httpsRes, valueObj);
+                });
               }
 
               httpsRes.writeHead(proxyRes.statusCode, proxyRes.headers);
@@ -112,7 +106,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
             const headers = proxyRes.headers;
 
             if (getFeedbackStatus(fullUrl) === 'unsafe') {
-              valueObj = {
+              return renderEjs(httpsRes, {
                 checking: false,
                 checkMsg: 'Website marked unsafe you cant continue',
                 protocol: null,
@@ -125,9 +119,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                 redirectTo: null,
                 visit: false,
                 parserResult: null,
-              };
-
-              return renderEjs(httpsRes, valueObj);
+              });
             }
 
             if (headers['content-type']?.includes('text/html')) {
@@ -155,8 +147,8 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                     proxyRes.headers,
                     'https'
                   );
-                  const parserResult = detectMaliciousCode(body);
-                  valueObj = {
+                  const parserResult = detectMaliciousHtml(body);
+                  return renderEjs(httpsRes, {
                     checking: true,
                     checkMsg: '',
                     protocol: 'https',
@@ -169,9 +161,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                     redirectTo: fullUrl,
                     visit: true,
                     parserResult,
-                  };
-
-                  return renderEjs(httpsRes, valueObj);
+                  });
                 } else {
                   httpsRes.writeHead(proxyRes.statusCode, headers);
                   httpsRes.end(body);

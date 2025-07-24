@@ -1,9 +1,10 @@
-function detectMaliciousCode(htmlContent) {
+function detectMaliciousHtml(htmlContent) {
   if (typeof htmlContent !== 'string') {
     throw new Error('HTML content must be a string');
   }
 
   const results = {
+    fileType:'HTML',
     totalMaliciousCount: 0,
     detectedThreats: [],
     categories: {
@@ -177,8 +178,8 @@ function detectMaliciousCode(htmlContent) {
 
 // Simple count-only version
 function getMaliciousCodeCount(htmlContent) {
-  return detectMaliciousCode(htmlContent).totalMaliciousCount;
+  return detectMaliciousHtml(htmlContent).totalMaliciousCount;
 }
 
 // ES Module exports
-export { detectMaliciousCode, getMaliciousCodeCount };
+export { detectMaliciousHtml, getMaliciousCodeCount };

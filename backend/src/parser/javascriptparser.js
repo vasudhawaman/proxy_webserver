@@ -4,6 +4,7 @@ function detectMaliciousJS(jsContent) {
   }
 
   const results = {
+    fileType: 'JavaScript',
     totalMaliciousCount: 0,
     detectedThreats: [],
     categories: {
@@ -83,12 +84,32 @@ function detectMaliciousJS(jsContent) {
     });
   }
 
-  countPatterns(dangerousFunctions, 'dangerousFunctions', 'Dangerous JS functions');
+  countPatterns(
+    dangerousFunctions,
+    'dangerousFunctions',
+    'Dangerous JS functions'
+  );
   countPatterns(obfuscationPatterns, 'obfuscation', 'Obfuscation patterns');
-  countPatterns(suspiciousVarNames, 'suspiciousVariables', 'Suspicious variable names');
-  countPatterns(suspiciousStrings, 'suspiciousStrings', 'Suspicious strings (data/base64)');
-  countPatterns(networkPatterns, 'networkCalls', 'Network or exfiltration calls');
-  countPatterns(domPatterns, 'domManipulation', 'DOM manipulation or cookie access');
+  countPatterns(
+    suspiciousVarNames,
+    'suspiciousVariables',
+    'Suspicious variable names'
+  );
+  countPatterns(
+    suspiciousStrings,
+    'suspiciousStrings',
+    'Suspicious strings (data/base64)'
+  );
+  countPatterns(
+    networkPatterns,
+    'networkCalls',
+    'Network or exfiltration calls'
+  );
+  countPatterns(
+    domPatterns,
+    'domManipulation',
+    'DOM manipulation or cookie access'
+  );
 
   // Determine risk level
   let riskLevel = 'low';

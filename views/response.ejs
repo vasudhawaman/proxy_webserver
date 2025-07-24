@@ -49,6 +49,10 @@
     <% if (parserResult !== null) { %>
     <div class="parser-results">
       <p>
+        <strong>File type: </strong>
+        <%= parserResult.fileType %>
+      </p>
+      <p>
         <strong>Total Malicious Code Count:</strong> <%=
         parserResult.totalMaliciousCount %>
       </p>
