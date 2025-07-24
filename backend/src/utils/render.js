@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 export function renderEjs(res, valueObj) {
   try {
     ejs.renderFile(
-      path.join(__dirname, '..', '..', '..', 'views', 'response.ejs'),
+      path.join(__dirname, '..', 'views', 'response.ejs'),
       valueObj,
       (err, html) => {
         if (err) {
