@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Site Safety Check</title>
+  </head>
+  <body>
+    <% if(checking) {%>
+    <h1>
+      Protocol: <%= protocol %> <%= protocol === 'http' ? '(Not Secure)' :
+      '(Secure)' %>
+    </h1>
+
+    <h2>Google Safe Browsing:</h2>
+    <p>
+      <%= googleApiResult === 'safe' ? 'No threats detected ✅' :
+      'Threatdetected ❌' %>
+    </p>
+
+    <h2>Security Header Score:</h2>
+    <p><%= headerScore %>%</p>
+    <p><strong>Header Analysis:</strong> <%= headerMessage %></p>
+
+    <% if (missingHeaders && missingHeaders.length > 0) { %>
+    <p><strong>Missing Headers:</strong></p>
+    <ul>
+      <% missingHeaders.forEach(header => { %>
+      <li><%= header %></li>
+      <% }); %>
+    </ul>
+    <% } else { %>
+    <p><strong>All recommended headers are present.</strong></p>
+    <% } %> <% if(sslTlsStatus && sslDetails) {%>
+    <h2>SSL/TLS Status:</h2>
+    <p><%= sslTlsStatus %></p>
+
+    <% if (sslDetails && Object.keys(sslDetails).length > 0) { %>
+    <h3>Certificate Details:</h3>
+    <ul>
+      <li><strong>Subject:</strong> <%= sslDetails.subject.CN || 'N/A' %></li>
+      <li><strong>Issuer:</strong> <%= sslDetails.issuer.CN || 'N/A' %></li>
+      <li><strong>Valid From:</strong> <%= sslDetails.valid_from %></li>
+      <li><strong>Valid To:</strong> <%= sslDetails.valid_to %></li>
+    </ul>
+    <% } %> <% } %>
+
+    <h3>Parse Result :</h3>
+    <% if (parserResult !== null) { %>
+    <div class="parser-results">
+      <p>
+        <strong>File type: </strong>
+        <%= parserResult.fileType %>
+      </p>
+      <p>
+        <strong>Total Malicious Code Count:</strong> <%=
+        parserResult.totalMaliciousCount %>
+      </p>
+
+      <h4>Detected Threats:</h4>
+      <% if (parserResult.detectedThreats && parserResult.detectedThreats.length> 0) { %>
+      <ul>
+        <% parserResult.detectedThreats.forEach(threat => { %>
+        <li><%= threat %></li>
+        <% }); %>
+      </ul>
+      <% } else { %>
+      <p>No specific threats detected.</p>
+      <% } %>
+
+      <h4>Categories Breakdown:</h4>
+      <% if (parserResult.categories) { %>
+      <ul>
+        <% for (const category in parserResult.categories) { %>
+        <li>
+          <strong
+            ><%= category.charAt(0).toUpperCase() +
+            category.slice(1).replace(/([A-Z])/g, ' $1') %>:
+          </strong>
+          <%= parserResult.categories[category] %>
+        </li>
+        <% } %>
+      </ul>
+      <% } else { %>
+      <p>No category breakdown available.</p>
+      <% } %>
+
+      <p>
+        <strong>Risk Level:</strong> <%=
+        parserResult.riskLevel.charAt(0).toUpperCase() +
+        parserResult.riskLevel.slice(1) %>
+      </p>
+      <p>
+        <strong>Timestamp:</strong> <%= new
+        Date(parserResult.timestamp).toLocaleString() %>
+      </p>
+    </div>
+    <% } else { %>
+    <p>Did not parse the response.</p>
+    <% } %>
+
+    <button onclick="sendFeedback('safe')">Mark as Safe</button>
+    <button onclick="sendFeedback('unsafe')">Mark as Unsafe</button>
+
+    <p>
+      <% if(visit) { %>
+      <a id="visit-link" href="<%= redirectTo %>?continue=true"
+        >Visit Website
+      </a>
+      <% } %>
+    </p>
+    <% }else {%>
+    <h1><%= checkMsg %></h1>
+    <% } %>
+
+    <script>
+      function sendFeedback(status) {
+        fetch('http://localhost:3000/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: '<%= redirectTo %>', status }),
+        });
+
+        if (status === 'unsafe') {
+          // Hide the "Visit Website" link
+          const visitLink = document.getElementById('visit-link');
+          if (visitLink) {
+            visitLink.style.display = 'none';
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
