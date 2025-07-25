@@ -3,11 +3,23 @@
   "name": "The Cloak",
   "version": "1.0",
   "description": "A proxy-based security analyzer and feedback tool.",
-  "permissions": ["proxy", "storage","tabs"],
+  "icons": {
+    "16": "images/logo-16.png",
+    "32": "images/logo-32.png",
+    "48": "images/logo-48.png",
+    "128": "images/logo-128.png"
+  },
+  "permissions": ["proxy", "storage", "tabs"],
   "host_permissions": ["http://localhost:3000/*"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Toggle Proxy"
+    "default_title": "Toggle Proxy",
+    "default_icon": {
+      "16": "images/logo-16.png",
+      "32": "images/logo-32.png",
+      "48": "images/logo-48.png",
+      "128": "images/logo-128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
