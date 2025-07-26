@@ -98,4 +98,10 @@ function detectMaliciousHtml(htmlContent) {
   return results;
 }
 
-export { detectMaliciousHtml };
+// Simple count-only version
+function getMaliciousCodeCount(htmlContent) {
+  return detectMaliciousHtml(htmlContent).totalMaliciousCount;
+}
+
+// ES Module exports
+export { detectMaliciousHtml, getMaliciousCodeCount };
