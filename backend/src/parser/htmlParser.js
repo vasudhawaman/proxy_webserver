@@ -83,13 +83,13 @@ function detectMaliciousHtml(htmlContent) {
   });
 
   // Weighted risk assessment
-  let riskLevel = 'low';
+  let riskLevel = 'None (safe)';
   if (results.weightedMaliciousScore > 10) {
-    riskLevel = 'critical';
+    riskLevel = 'hard';
   } else if (results.weightedMaliciousScore > 5) {
-    riskLevel = 'high';
-  } else if (results.weightedMaliciousScore > 2) {
     riskLevel = 'medium';
+  } else if (results.weightedMaliciousScore > 2) {
+    riskLevel = 'low';
   }
 
   results.riskLevel = riskLevel;
