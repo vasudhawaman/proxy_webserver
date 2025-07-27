@@ -110,3 +110,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// add script related to UI
