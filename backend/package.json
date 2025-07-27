@@ -12,7 +12,5 @@
   "description": "",
   "dependencies": {
     "dotenv": "^16.6.0",
-    "ejs": "^3.1.10",
-    "node-forge": "^1.3.1"
-  }
+    "ejs": "^3.1.10"  }
 }

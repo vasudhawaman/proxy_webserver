@@ -1,11 +1,11 @@
 // Assign a weight to each pattern group
 const PATTERN_WEIGHTS = {
-  xss: 1.0,                // Highly malicious
-  scriptInjection: 1.0,    // Highly malicious
-  formHijacking: 0.5,      // Moderately suspicious
-  redirects: 0.7,          // Suspicious
-  dataExfiltration: 0.9,   // Highly suspicious
-  clickjacking: 0.4,       // Might be benign in some cases
+  xss: 1.0, // Highly malicious
+  scriptInjection: 1.0, // Highly malicious
+  formHijacking: 0.5, // Moderately suspicious
+  redirects: 0.7, // Suspicious
+  dataExfiltration: 0.9, // Highly suspicious
+  clickjacking: 0.4, // Might be benign in some cases
   suspiciousAttributes: 0.3, // Possibly benign, often false positives
 };
 
@@ -15,7 +15,7 @@ function detectMaliciousHtml(htmlContent) {
   }
 
   const results = {
-    fileType:'HTML',
+    fileType: 'HTML',
     totalMaliciousCount: 0,
     weightedMaliciousScore: 0,
     detectedThreats: [],
@@ -31,30 +31,6 @@ function detectMaliciousHtml(htmlContent) {
   };
 
   // ... [patterns definitions remain the same as before]
-
-  // Count pattern matches and categorize threats (now with weight)
-  function countPatterns(patterns, category, description) {
-    patterns.forEach((pattern, index) => {
-      const matches = htmlContent.match(pattern) || [];
-      if (matches.length > 0) {
-        results.categories[category] += matches.length;
-        results.totalMaliciousCount += matches.length;
-        const weight = PATTERN_WEIGHTS[category] || 0.3;
-        results.weightedMaliciousScore += matches.length * weight;
-        results.detectedThreats.push({
-          category: category,
-          description: description,
-          patternIndex: index,
-          count: matches.length,
-          weight,
-          score: matches.length * weight,
-          samples: matches.slice(0, 3),
-        });
-      }
-    });
-  }
-
-  // ... [run countPatterns for each group as before]
 
   // Check for obfuscated content (assign low weight)
   const encodedPatterns = [
