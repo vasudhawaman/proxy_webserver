@@ -1,12 +1,28 @@
 // It dynamically generates fake SSL certificates on the fly for each HTTPS site the user visits, using your own trusted Root CA.
 import fs from 'fs';
 import forge from 'node-forge';
-import path from 'path'
+import path from 'path';
+import 'dotenv/config';
 
-const rootCA = {
-  key:fs.readFileSync('/etc/secrets/rootCA.key').toString(),
-  cert: fs.readFileSync(path.join(import.meta.dirname,'..','certs/rootCA.crt')).toString(),
-};
+let rootCA = '';
+
+if (process.env.NODE_ENV === 'development') {
+  rootCA = {
+    key: fs
+      .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.key'))
+      .toString(),
+    cert: fs
+      .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.crt'))
+      .toString(),
+  };
+} else {
+  rootCA = {
+    key: fs.readFileSync('/etc/secrets/rootCA.key').toString(),
+    cert: fs
+      .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.crt'))
+      .toString(),
+  };
+}
 
 export function createFakeCert(hostname) {
   const pki = forge.pki;

@@ -3,6 +3,7 @@ import http from 'http';
 import url from 'url';
 import https from 'https';
 import zlib from 'zlib';
+import 'dotenv/config';
 
 import { useGoogleAPI } from '../utils/googleSafeBrowsing.js';
 import { renderEjs } from '../utils/render.js';
@@ -41,6 +42,13 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
   const parsedUrl = url.parse(clientReq.url, true);
   let fullUrl = '';
   let options = {};
+
+  if (process.env.NODE_ENV === 'development') {
+    if (parsedUrl.pathname === '/test') {
+      clientRes.writeHead(200);
+      clientRes.end('Hello World!');
+    }
+  }
 
   if (parsedUrl.pathname === '/parser-state' && clientReq.method === 'POST') {
     let body = '';
