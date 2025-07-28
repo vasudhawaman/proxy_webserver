@@ -4,7 +4,7 @@ import forge from 'node-forge';
 import path from 'path'
 
 const rootCA = {
-  key: fs.readFileSync(path.join(import.meta.dirname,'..','certs/rootCA.key')).toString(),
+  key:fs.readFileSync('/etc/secrets/rootCA.key'),
   cert: fs.readFileSync(path.join(import.meta.dirname,'..','certs/rootCA.crt')).toString(),
 };
 
