@@ -15,119 +15,82 @@
   </head>
 
   <body>
-    <main class="container">
-      <div id="box-1">
-        <div id="certificate">
-          <a href="http://localhost:3000/get-certificate" download="rootCA.crt">
-            <button class="button">
-              <i class="fas fa-download"></i> Download Certificate
-            </button>
-          </a>
-        </div>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="logo">Proxy Setup</div>
 
-        <div id="activate">
-          <!-- Toggle Proxy -->
-          <button id="proxy-toggle" class="button">
-            <i class="fas fa-plug"></i> Activate Proxy
-          </button>
+        <button id="menu-btn" class="menu-btn">
+          <i class="fas fa-bars"></i>
+        </button>
 
-          <!-- Toggle Parser -->
-          <label for="parser-toggle">
-            <input type="checkbox" id="parser-toggle" />
-            <i class="fas fa-code"></i> Enable HTML Parser?
-          </label>
-        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#activate_proxy"><i class="fa fa-info-circle"></i> Activate Proxy</a></li>
+          <li><a href="#urlCheck"><i class="fa fa-life-ring"></i> URL Check</a></li>
+          <li><a href="#learn"><i class="fa fa-question-circle"></i> Learn</a></li>
+        </ul>
       </div>
+    </nav>
 
-      <div id="box-2">
-        <div id="manual">
-          <!-- URL Input -->
-          <div class="input-group">
-            <label for="urlInput">
-              <i class="fas fa-link"></i> Enter URL to inspect:
-            </label>
-            <input
-              type="text"
-              id="urlInput"
-              placeholder="https://example.com"
-            />
+    <!-- Page Content -->
+    <main class="container">
+      <section id="activate_proxy">
+        <div id="box-1">
+          <div id="certificate">
+            <a href="http://localhost:3000/get-certificate" download="rootCA.crt">
+              <button class="button">
+                <i class="fas fa-download"></i> Download Certificate
+              </button>
+            </a>
           </div>
 
-          <button id="submitUrl" class="button">
-            <i class="fas fa-lock"></i> Check Safety
-          </button>
+          <div id="activate">
+            <button id="proxy-toggle" class="button">
+              <i class="fas fa-plug"></i> Activate Proxy
+            </button>
+
+            <label for="parser-toggle">
+              <input type="checkbox" id="parser-toggle" />
+              <i class="fas fa-code"></i> Enable HTML Parser?
+            </label>
+          </div>
         </div>
+      </section>
 
-        <div id="feedback">
-          <!-- Feedback Button -->
-          <button id="get-feedback-btn" class="button">
-            <i class="fas fa-comments"></i> Get Feedback
-          </button>
+      <section id="urlCheck">
+        <div id="box-2">
+          <div id="manual">
+            <div class="input-group">
+              <label for="urlInput">
+                <i class="fas fa-link"></i> Enter URL to inspect:
+              </label>
+              <input type="text" id="urlInput" placeholder="https://example.com" />
+            </div>
 
-          <!-- Feedback List -->
-          <ul id="feedback-list"></ul>
+            <button id="submitUrl" class="button">
+              <i class="fas fa-lock"></i> Check Safety
+            </button>
+          </div>
+
+          <div id="feedback">
+            <button id="get-feedback-btn" class="button">
+              <i class="fas fa-comments"></i> Get Feedback
+            </button>
+            <ul id="feedback-list"></ul>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div id="box-3">
-        <div id="how-to">
-          <h3>
-            Please refer the following readme to learn how to operate this
-            extension
-          </h3>
-          <a
-            href="https://github.com/vasudhawaman/proxy_webserver"
-            target="_blank"
-          >
-            Github
-          </a>
+      <section id="learn">
+        <div id="box-3">
+          <div id="how-to">
+            <h4>Refer the README to learn how to operate this extension:</h4>
+            <a href="https://github.com/vasudhawaman/proxy_webserver" target="_blank">
+              GitHub
+            </a>
+          </div>
         </div>
-      </div>
-
-      <!-- Heading -->
-      <!-- <h3>
-        <i class="fas fa-shield-alt"></i>
-        Please download and configure the following SSL/TLS certificate for the
-        proxy to work:
-      </h3> -->
-
-      <!-- Download certificate -->
-      <!-- <a href="http://localhost:3000/get-certificate" download="rootCA.crt">
-        <button class="button">
-          <i class="fas fa-download"></i> Download Certificate
-        </button>
-      </a> -->
-
-      <!-- Toggle Proxy -->
-      <!-- <button id="proxy-toggle" class="button">
-        <i class="fas fa-plug"></i> Activate Proxy
-      </button> -->
-
-      <!-- Toggle Parser -->
-      <!-- <label for="parser-toggle">
-        <input type="checkbox" id="parser-toggle" />
-        <i class="fas fa-code"></i> Enable HTML Parser?
-      </label> -->
-
-      <!-- URL Input -->
-      <!-- <div class="input-group">
-        <label for="urlInput">
-          <i class="fas fa-link"></i> Enter URL to inspect:
-        </label>
-        <input type="text" id="urlInput" placeholder="https://example.com" />
-      </div> -->
-
-      <!-- <button id="submitUrl" class="button">
-        <i class="fas fa-lock"></i> Check Safety
-      </button> -->
-
-      <!-- Feedback Button -->
-      <!-- <button id="get-feedback-btn" class="button">
-        <i class="fas fa-comments"></i> Get Feedback
-      </button> -->
-
-      <!-- Feedback List -->
-      <!-- <ul id="feedback-list"></ul> -->
+      </section>
     </main>
 
     <script src="popup.js"></script>
