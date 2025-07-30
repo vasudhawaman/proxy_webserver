@@ -6,23 +6,14 @@ import 'dotenv/config';
 
 let rootCA = '';
 
-if (process.env.NODE_ENV === 'development') {
-  rootCA = {
-    key: fs
-      .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.key'))
-      .toString(),
-    cert: fs
-      .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.crt'))
-      .toString(),
-  };
-} else {
-  rootCA = {
-    key: fs.readFileSync('/etc/secrets/rootCA.key').toString(),
-    cert: fs
-      .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.crt'))
-      .toString(),
-  };
-}
+rootCA = {
+  key: fs
+    .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.key'))
+    .toString(),
+  cert: fs
+    .readFileSync(path.join(import.meta.dirname, '..', 'certs/rootCA.crt'))
+    .toString(),
+};
 
 export function createFakeCert(hostname) {
   const pki = forge.pki;
