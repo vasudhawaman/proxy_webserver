@@ -124,7 +124,7 @@ After all checks are complete:
 | Layer       | Technology Used                                               |
 |-------------|---------------------------------------------------------------|
 | **Backend** | Node.js (core modules only – `http`, `https`, `fs`, `path`)   |
-| **Frontend**| HTML, CSS (Vanilla)                                           |
+| **Frontend (Extension)**| HTML, CSS (Vanilla)                                           |
 | **Templating** | EJS                                                        |
 | **Security**| Google Safe Browsing API, node-forge (for certificate generation) |
 | **Env Config** | dotenv                                                     |
