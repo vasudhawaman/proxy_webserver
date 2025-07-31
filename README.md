@@ -1,97 +1,162 @@
 # 🔒 Proxy Server
 
-A Node.js-based proxy server that checks if a website is safe to visit. It integrates with the Google Safe Browsing API and performs security header analysis to help users browse safely.
+A powerful Node.js-based proxy server with a built-in browser extension that ensures safer browsing by inspecting websites for potential threats in real-time.
+
+---
 
 ## 📌 Features
 
-- ✅ Detects malicious URLs using **Google Safe Browsing API**
-- 🛡️ Analyzes websites for missing **critical HTTP security headers**
-- 🚫 Flags websites that use **HTTP instead of HTTPS**
-- 📊 Calculates a **security score** and risk level
-- 🌐 Clean and responsive frontend UI
-- 🧠 Built using core Node.js modules — no frameworks like Express used
+- ✅ Detects malicious URLs using the **Google Safe Browsing API**
+- 🛡️ Scans for missing **critical HTTP security headers**
+- 🔐 Performs **SSL/TLS certificate validation**
+- 🧬 Parses and analyzes the **HTML content** to detect malicious scripts or behaviors
+- 🚫 Flags websites using **HTTP instead of HTTPS**
+- 📊 Calculates a comprehensive **security score and risk level**
+- 🌐 Responsive and intuitive **frontend UI**
+- ⚙️ Built entirely with **core Node.js modules** — no frameworks like Express
 
-## ⚙️ Setup Instructions
+---
+### ⚙️ Setup and Usage Instructions
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/vasudhawaman/proxy_webserver.git .
-   ```
-2. **Move to Backend Folder**
-   ```bash
-   cd backend
-   ```
-3. **Install Dependencies**
-   ```bash
-   npm install ejs dotenv
-   ```
-4. **Create a .env file under backend folder and add your API key and PORT number**
-   ```ini
-   GOOGLE_API_KEY=your_google_safe_browsing_api_key
-   PORT=port_number
-   ```
-5. **Start the Server**
-   ```bash
-   node --watch server.js
-   ```
+This section guides you through setting up and using the proxy server and its accompanying Chrome extension.
+### **1. Server Setup**
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/vasudhawaman/proxy_webserver.git .
+    ```
+2.  **Generate SSL Certificates**:
+    Under the `certs` folder (backend/src) generate a **rootCA.crt** and its corresponding **rootCA.key** using a tool like OpenSSL. These certificates are crucial for handling HTTPS traffic.
+3.  **Configure Environment Variables**:
+    Create a `.env` file in the `backend` folder based on the provided `.env.example`. Make sure to add your Google Safe Browse API key and define the server's port. You can get a free API key from the [Google Cloud Console](https://console.cloud.google.com).
+4.  **Install Dependencies and Start the Server**:
+    Navigate to the `backend` directory, install the required npm packages, and start the server. Node.js must be installed on your machine.
+    ```bash
+    cd backend
+    npm i
+    node --watch src/index.js
+    ```
+    This command starts the proxy server, which is now ready to handle incoming requests.
+
+---
+
+### **2. Chrome Extension Setup**
+
+1.  **Trust the Root Certificate**:
+    Before using the extension, you must add your `rootCA.crt` as a trusted certificate in Chrome. Go to `chrome://settings/security`, find **Manage certificates**, and import the certificate under the **Custom** or **Authorities** tab. This allows the browser to trust the HTTPS connections handled by your proxy.
+2.  **Load the Extension**:
+    Go to `chrome://extensions`, enable **Developer mode**, and click on **Load unpacked**. Select the `chrome-extension` folder from the cloned repository to load the extension.
+
+---
+
+### **3. Using the Extension**
+
+1.  **Activate the Proxy**:
+    Click the extension icon and toggle on **"Active Proxy"**. Once enabled, all your web requests will be redirected through the proxy server for analysis.
+2.  **Customize Your Scan**:
+    * **HTML Parser**: You have the option to enable the **HTML parser** to check for malicious code within web pages. Note that this may increase the response time.
+    * **Manual URL Input**: You can also manually input a full URL (including the protocol, e.g., `https://example.com`) directly into the extension for a standalone security check.
+3.  **Reviewing the Results**:
+    After a check, you will be redirected to a results page.
+    * For standard Browse, you can **continue** to the website or choose to mark it as **safe** or **unsafe**.
+    * For manual URL inputs, the "continue" option is not available, but you can still mark the site's safety status.
+4.  **Managing Feedback**:
+    Click the **"Get Feedback"** button to view a list of all websites you have manually marked as safe or unsafe.
+    * **Safe Websites**: The proxy will not perform any checks on websites marked as safe, allowing you to browse them directly.
+    * **Unsafe Websites**: You will be blocked from accessing any websites marked as unsafe.
+5.  **Resetting the List**:
+    This list of marked websites will persist until you deactivate and then reactivate the proxy.
+---
 
 ## 🧪 How It Works
 
-1. The user visits `localhost:PORT` in their browser, which sends a `GET` request to the `/` endpoint.  
-   The server responds with the homepage (`index.html`).
+### 1. Request Interception
 
-2. The browser then makes additional `GET` requests for static assets like the background image and `style.css`, which the server also serves.
+Once the proxy is activated via the Chrome extension, any request made by the user is redirected to the proxy server.
 
-3. The user enters a target URL into the input field on the homepage.  
-   On submission, a `POST` request is sent to the `/isSafe` endpoint, including the target URL in the form data.
+### 2. Protocol Handling
 
-4. The proxy server extracts the URL and begins the following checks:
+- **For HTTP**:
+  - The proxy directly forwards the HTTP request to the actual destination server.
+  - It captures the response and performs multiple security checks before displaying the results to the user.
 
-   - 🔍 **Google Safe Browsing Check:**  
-     It queries the Google Safe Browsing API to determine whether the URL is flagged as malicious.  
-     - If marked unsafe, the server responds immediately with a warning.
+- **For HTTPS** (Man-in-the-Middle Simulation):
+  - Chrome sends a `CONNECT` request to the proxy to initiate a TLS tunnel.
+  - The proxy dynamically spins up a secure HTTPS server with a **fake certificate**, signed by a trusted **custom root CA** (pre-installed in the browser).
+  - This fake server impersonates the destination while internally communicating with the real server.
+  - The proxy decrypts the actual HTTPS response, performs security checks, and relays results to the user.
 
-   - 🌐 **Protocol Check:**  
-     If the URL uses HTTP instead of HTTPS, the server flags it as insecure and sends an appropriate response to the user.
-     
-   - 📡 **Security Header & SSL Analysis:**  
-     If the URL is marked safe and uses HTTPS, the server sends a browser-like request to the target website. It also verifies the presence of a valid SSL/TLS certificate before proceeding with security header checks.
+### 3. Security Checks Performed
 
-     - Upon receiving the response headers, it checks for the presence of the following essential security headers:
-       - `Content-Security-Policy`
-       - `Strict-Transport-Security`
-       - `X-Frame-Options`
-       - `X-XSS-Protection`
-       - `X-Content-Type-Options`
+- 🔍 **Google Safe Browsing Check**  
+  Verifies the URL against Google's database of malicious or deceptive sites.
 
-5. Based on how many of these headers are present, the server calculates a **security score** and returns a result page with:
-   - The calculated score
-   - A safety message
-   - A list of missing headers (if any)
+- 🔒 **HTTP Security Header Analysis**  
+  Ensures presence of essential headers like:
+  - `Content-Security-Policy`
+  - `Strict-Transport-Security`
+  - `X-Frame-Options`
+  - `X-XSS-Protection`
+  - `X-Content-Type-Options`
+
+- 🔐 **SSL/TLS Certificate Inspection**  
+  Checks the validity, chain of trust, and configuration of the target site’s SSL certificate.
+
+- 🧠 **HTML Parsing for Malicious Content**  
+  Analyzes the page’s HTML to detect:
+  - Suspicious iframes
+  - Known phishing patterns
+  - Obfuscated or inline scripts
+
+### 4. Result Display
+
+After all checks are complete:
+- A dynamic **EJS-powered results page** is rendered.
+- Users can:
+  - View security analysis results
+  - Choose to continue browsing or go back
+  - Optionally mark a website as safe or unsafe for future visits
+
+---
 
 ## 🧰 Tech Stack
 
-- **Node.js** – Core backend logic using built-in `http`, `https`, `fs`, and `path` modules (no frameworks like Express)
-- **EJS** – Templating engine used to render dynamic result pages based on server-side data
-- **Google Safe Browsing API** – Used to verify whether the entered URL is malicious or unsafe
-- **dotenv** – Loads sensitive configuration (like API keys) from `.env` files into environment variables
-- **HTML & CSS (Vanilla)** – Used to build a clean, responsive user interface without any frontend frameworks
+| Layer       | Technology Used                                               |
+|-------------|---------------------------------------------------------------|
+| **Backend** | Node.js (core modules only – `http`, `https`, `fs`, `path`)   |
+| **Frontend**| HTML, CSS (Vanilla)                                           |
+| **Templating** | EJS                                                        |
+| **Security**| Google Safe Browsing API, node-forge (for certificate generation) |
+| **Env Config** | dotenv                                                     |
+
+---
+
+## 👥 Team Members
+
+- 👨‍🏫 **Vasudha Waman** – Project Mentor  
+- 🧑‍💻 **Aneekesh Yadav** – Team Leader, Backend Logic & Integration  
+- 🧑‍💻 **Veer Doria** – Core Functionality, API Integration  
+- 🎨 **Anish De** – UI/UX Design, Frontend Development
+
+---
+
+## 🚀 Future Goals
+
+1. 🕵️ **Implement JavaScript Parsing**  
+   Analyze inline and external JavaScript to detect obfuscated or malicious code, phishing attempts, and suspicious behavior.
+
+2. 🌐 **Cross-Browser Extension Support**  
+   Extend compatibility beyond Chrome to other browsers like Firefox, Edge, and Brave using WebExtension APIs.
+
+3. 📱 **Mobile Compatibility**  
+   Adapt the system to work on smartphones, either through mobile proxy configuration or a standalone mobile app.
+
+4. ☁️ **Public Deployment**  
+   Host the project on a reliable server or cloud platform so that users can access it without local setup.
+
+
+---
 
 ## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE).
-
-## 👥 Team Members
-
-1. **Vasudha Waman** – Mentor and project guide  
-2. **Aneekesh** – Team leader; contributed to backend logic and integration  
-3. **Veer** – Focused on backend functionality and API integration  
-4. **Anish** – Handled UI development and styling with HTML/CSS
-
-## 🚀 Future Targets
-
-1. Enhance security by parsing incoming HTML and JavaScript to detect suspicious content such as iframes, phishing scripts, or embedded threats.
-2. Implement a more robust SSL/TLS certificate validation mechanism, including expiry checks and certificate chain analysis.
-3. Improve the design, responsiveness, and overall user experience of the dynamic result page.
-4. Add logging and history tracking to maintain records of inspected URLs, timestamps, and safety assessments for auditing or reporting purposes.
-
