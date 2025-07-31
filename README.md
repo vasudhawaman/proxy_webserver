@@ -38,7 +38,6 @@ This section guides you through setting up and using the proxy server and its ac
     ```
     This command starts the proxy server, which is now ready to handle incoming requests.
 
----
 
 ### **2. Chrome Extension Setup**
 
@@ -47,7 +46,6 @@ This section guides you through setting up and using the proxy server and its ac
 2.  **Load the Extension**:
     Go to `chrome://extensions`, enable **Developer mode**, and click on **Load unpacked**. Select the `chrome-extension` folder from the cloned repository to load the extension.
 
----
 
 ### **3. Using the Extension**
 
