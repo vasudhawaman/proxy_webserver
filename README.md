@@ -26,7 +26,7 @@ This section guides you through setting up and using the proxy server and its ac
     git clone https://github.com/vasudhawaman/proxy_webserver.git .
     ```
 2.  **Generate SSL Certificates**:
-    Under the `certs` folder (backend/src) generate a **rootCA.crt** and its corresponding **rootCA.key** using a tool like OpenSSL. These certificates are crucial for handling HTTPS traffic.
+    Under the `certs` folder (in backend/src) generate a **rootCA.crt** and its corresponding **rootCA.key** using a tool like OpenSSL. These certificates are crucial for handling HTTPS traffic.
 3.  **Configure Environment Variables**:
     Create a `.env` file in the `backend` folder based on the provided `.env.example`. Make sure to add your Google Safe Browse API key and define the server's port. You can get a free API key from the [Google Cloud Console](https://console.cloud.google.com).
 4.  **Install Dependencies and Start the Server**:
