@@ -1,233 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Site Safety Check</title>
- <style>
-    body {
-      background-color: #121212;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 2rem;
-    }
-
-    .container {
-      display: grid;
-      grid-template-columns: repeat(3, auto);
-      column-gap: 2rem;
-      row-gap: 2rem;
-    }
-
-    .item {
-      background-color: #1f1f1f;
-      border: 1px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-      transition: transform 0.3s ease;
-    }
-
-    h1 {
-      font-size: 1.8rem;
-      color: #ffa500;
-
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #333;
-      padding-bottom: 0.4rem;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
-    }
-
-    h3,
-    h4 {
-      font-size: 1.2rem;
-      color: #6ec1e4;
-      margin-top: 1.2rem;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 4px rgba(255, 165, 0, 0.2);
-    }
-
-
-    p,
-    li {
-      color: #cccccc;
-      line-height: 1.5;
-    }
-
-    strong {
-      color: #f5f5f5;
-    }
-
-    ul {
-      padding-left: 1.2rem;
-    }
-
-    li::marker {
-      color: #00bcd4;
-    }
-
-    #safe,
-    #unsafe {
-      width: 200px;
-      height: 50px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      border: none;
-      color: #fff;
-    }
-
-    #safe {
-      background-color: #28a745;
-      margin-top: 2rem;
-    }
-
-    #safe:hover {
-      background-color: #218838;
-    }
-
-    #unsafe {
-      background-color: #dc3545;
-      margin-top: 1rem;
-    }
-
-    #unsafe:hover {
-      background-color: #c82333;
-    }
-
-    #visit-link {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 10px 15px;
-      background-color: #007bff;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-
-    #visit-link:hover {
-      background-color: #0056b3;
-    }
-
-  
-    .risk-high {
-      color: #ff4d4d;
-      font-weight: bold;
-    }
-
-    .risk-medium {
-      color: #ffcc00;
-      font-weight: bold;
-    }
-
-    .risk-low {
-      color: #28a745;
-      font-weight: bold;
-    }
-
-    .parser-results p {
-      margin: 0.3rem 0;
-    }
-
-    @media (max-width: 1000px) {
-      .container {
-        grid-template-columns: repeat(2,auto);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Site Safety Check</title>
+    <style>
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 2rem;
       }
-    }
-    @media (max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style> 
-</head>
 
-<body>
-  <div class="container">
-    <div class="item">
-      <% if(checking) {%>
+      .container {
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        column-gap: 2rem;
+        row-gap: 2rem;
+      }
+
+      .item {
+        background-color: #1f1f1f;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        transition: transform 0.3s ease;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        color: #ffa500;
+
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #333;
+        padding-bottom: 0.4rem;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+      }
+
+      h3,
+      h4 {
+        font-size: 1.2rem;
+        color: #6ec1e4;
+        margin-top: 1.2rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 4px rgba(255, 165, 0, 0.2);
+      }
+
+      p,
+      li {
+        color: #cccccc;
+        line-height: 1.5;
+      }
+
+      strong {
+        color: #f5f5f5;
+      }
+
+      ul {
+        padding-left: 1.2rem;
+      }
+
+      li::marker {
+        color: #00bcd4;
+      }
+
+      #safe,
+      #unsafe {
+        width: 200px;
+        height: 50px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        color: #fff;
+      }
+
+      #safe {
+        background-color: #28a745;
+        margin-top: 2rem;
+      }
+
+      #safe:hover {
+        background-color: #218838;
+      }
+
+      #unsafe {
+        background-color: #dc3545;
+        margin-top: 1rem;
+      }
+
+      #unsafe:hover {
+        background-color: #c82333;
+      }
+
+      #visit-link {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+      }
+
+      #visit-link:hover {
+        background-color: #0056b3;
+      }
+
+      .risk-high {
+        color: #ff4d4d;
+        font-weight: bold;
+      }
+
+      .risk-medium {
+        color: #ffcc00;
+        font-weight: bold;
+      }
+
+      .risk-low {
+        color: #28a745;
+        font-weight: bold;
+      }
+
+      .parser-results p {
+        margin: 0.3rem 0;
+      }
+
+      @media (max-width: 1000px) {
+        .container {
+          grid-template-columns: repeat(2, auto);
+        }
+      }
+      @media (max-width: 768px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="item">
+        <% if(checking) {%>
         <div id="protocol">
           <h1>Protocol</h1>
           <p>
-            <%= protocol %>
-              <%= protocol==='http' ? '(Not Secure)' : '(Secure)' %>
+            <% if(protocol === 'http') {%>
+              <span style="color: red;">HTTP (Not Secure)</span>
+            <% }else {%>
+              <span style="color: greenyellow;">HTTPS (Secure)</span>
+            <% } %>
           </p>
         </div>
-    </div>
-
-    <div class="item">
-      <div id="google">
-        <h1>Google Safe Browsing</h1>
-        <p>
-          <%= googleApiResult==='safe' ? 'No Threats Detected ✅' : 'Threat Detected ❌' %>
-        </p>
       </div>
-    </div>
 
-    <div class="item">
-      <div id="headers">
-        <h1>Security Header Score</h1>
-        <p>
-          <%= headerScore %>%
-        </p>
-        <p><strong>Header Analysis:</strong>
-          <%= headerMessage %>
-        </p>
+      <div class="item">
+        <div id="google">
+          <h1>URL Analysis Result</h1>
+          <p>
+            <%= googleApiResult==='safe' ? 'No Threats Detected ✅' : 'ThreatDetected ❌' %>
+          </p>
+        </div>
+      </div>
 
-        <% if (missingHeaders && missingHeaders.length> 0) { %>
+      <div class="item">
+        <div id="headers">
+          <h1>Security Headers Result</h1>
+          <p>
+            <strong>Calculated Score:</strong>
+            <%= headerScore %>%
+          </p>
+          <p>
+            <strong>Header Analysis:</strong>
+            <%= headerMessage %>
+          </p>
+
+          <% if (missingHeaders && missingHeaders.length> 0) { %>
           <p><strong>Missing Headers:</strong></p>
           <ul>
             <% missingHeaders.forEach(header=> { %>
-              <li>
-                <%= header %>
-              </li>
-              <% }); %>
+            <li><%= header %></li>
+            <% }); %>
           </ul>
           <% } else { %>
-            <p><strong>All recommended headers are present.</strong></p>
-            <% } %>
+          <p><strong>All recommended headers are present.</strong></p>
+          <% } %>
+        </div>
       </div>
-    </div>
 
-    <div class="item">
-      <div id="ssl">
-        <% if(sslTlsStatus && sslDetails) {%>
-          <h1>SSL/TLS Status:</h1>
-          <p>
-            <%= sslTlsStatus %>
-          </p>
+      <div class="item">
+        <div id="ssl">
+          <% if(sslTlsStatus && sslDetails) {%>
+          <h1>SSL/TLS Status</h1>
+          <p><%= sslTlsStatus %></p>
 
           <% if (sslDetails && Object.keys(sslDetails).length> 0) { %>
-            <h3>Certificate Details:</h3>
-            <ul>
-              <li><strong>Subject:</strong>
-                <%= sslDetails.subject.CN || 'N/A' %>
-              </li>
-              <li><strong>Issuer:</strong>
-                <%= sslDetails.issuer.CN || 'N/A' %>
-              </li>
-              <li><strong>Valid From:</strong>
-                <%= sslDetails.valid_from %>
-              </li>
-              <li><strong>Valid To:</strong>
-                <%= sslDetails.valid_to %>
-              </li>
-            </ul>
-            <% } %>
-              <% } %>
+          <h3>Certificate Details:</h3>
+          <ul>
+            <li>
+              <strong>Subject:</strong>
+              <%= sslDetails.subject.CN || 'N/A' %>
+            </li>
+            <li>
+              <strong>Issuer:</strong>
+              <%= sslDetails.issuer.CN || 'N/A' %>
+            </li>
+            <li>
+              <strong>Valid From:</strong>
+              <%= sslDetails.valid_from %>
+            </li>
+            <li>
+              <strong>Valid To:</strong>
+              <%= sslDetails.valid_to %>
+            </li>
+          </ul>
+          <% } %> <% } %>
+        </div>
       </div>
-    </div>
 
-    <div class="item">
-      <div id="parser">
-        <h1>Parse Result :</h1>
-        <% if (parserResult !==null) { %>
+      <div class="item">
+        <div id="parser">
+          <h1>Parse Result</h1>
+          <% if (parserResult !==null) { %>
           <div class="parser-results">
             <p>
               <strong>File type: </strong>
@@ -240,82 +241,84 @@
 
             <h4>Categories Breakdown:</h4>
             <% if (parserResult.categories) { %>
-              <ul>
-                <% for (const category in parserResult.categories) { %>
-                  <li>
-                    <strong>
-                      <%= category.charAt(0).toUpperCase() + category.slice(1).replace(/([A-Z])/g, ' $1' ) %>:
-                    </strong>
-                    <%= parserResult.categories[category] %>
-                  </li>
-                  <% } %>
-              </ul>
-              <% } else { %>
-                <p>No category breakdown available.</p>
-                <% } %>
+            <ul>
+              <% for (const category in parserResult.categories) { %>
+              <li>
+                <strong>
+                  <%= category.charAt(0).toUpperCase() +
+                  category.slice(1).replace(/([A-Z])/g, ' $1' ) %>:
+                </strong>
+                <%= parserResult.categories[category] %>
+              </li>
+              <% } %>
+            </ul>
+            <% } else { %>
+            <p>No category breakdown available.</p>
+            <% } %>
 
-                  <p>
-                    <strong>Risk Level:</strong>
-                    <%= parserResult.riskLevel.charAt(0).toUpperCase() + parserResult.riskLevel.slice(1) %>
-                  </p>
-                  <p>
-                    <strong>Timestamp:</strong>
-                    <%= new Date(parserResult.timestamp).toLocaleString() %>
-                  </p>
+            <p>
+              <strong>Risk Level:</strong>
+              <%= parserResult.riskLevel.charAt(0).toUpperCase() +
+              parserResult.riskLevel.slice(1) %>
+            </p>
+            <p>
+              <strong>Timestamp:</strong>
+              <%= new Date(parserResult.timestamp).toLocaleString() %>
+            </p>
           </div>
           <% } else { %>
-            <p>Did not parse the response.</p>
-            <% } %>
+          <p>Did not parse the response.</p>
+          <% } %>
+        </div>
       </div>
-    </div>
 
-    <div class="item">
-      <div id="result">
-        <button id="safe" onclick="sendFeedback('safe')">Mark as Safe</button>
-        <button id="unsafe" onclick="sendFeedback('unsafe')">Mark as Unsafe</button>
+      <div class="item">
+        <div id="result">
+          <button id="safe" onclick="sendFeedback('safe')">Mark as Safe</button>
+          <button id="unsafe" onclick="sendFeedback('unsafe')">
+            Mark as Unsafe
+          </button>
 
-        <p>
-          <% if(visit) { %>
-            <a id="visit-link" href="<%= redirectTo %>?continue=true">Visit Website
+          <p>
+            <% if(visit) { %>
+            <a id="visit-link" href="<%= redirectTo %>?continue=true"
+              >Visit Website
             </a>
             <% } %>
-        </p>
-        <% }else {%>
-          <h1>
-            <%= checkMsg %>
-          </h1>
+          </p>
+          <% }else {%>
+          <h1><%= checkMsg %></h1>
           <% } %>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    function sendFeedback(status) {
-      fetch('http://localhost:3000/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: '<%= redirectTo %>', status }),
-      });
+    <script>
+      function sendFeedback(status) {
+        fetch('http://localhost:3000/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: '<%= redirectTo %>', status }),
+        });
 
-      // Hide both buttons after selection
-      const safeBtn = document.querySelector('button[onclick*="safe"]');
-      const unsafeBtn = document.querySelector('button[onclick*="unsafe"]');
+        // Hide both buttons after selection
+        const safeBtn = document.querySelector('button[onclick*="safe"]');
+        const unsafeBtn = document.querySelector('button[onclick*="unsafe"]');
 
-      if (status === 'safe') {
-        unsafeBtn.style.display = 'none';
-      } else if (status === 'unsafe') {
-        safeBtn.style.display = 'none';
-      }
+        if (status === 'safe') {
+          unsafeBtn.style.display = 'none';
+        } else if (status === 'unsafe') {
+          safeBtn.style.display = 'none';
+        }
 
-      // Additionally hide the Visit link if marked unsafe
-      if (status === 'unsafe') {
-        const visitLink = document.getElementById('visit-link');
-        if (visitLink) {
-          visitLink.style.display = 'none';
+        // Additionally hide the Visit link if marked unsafe
+        if (status === 'unsafe') {
+          const visitLink = document.getElementById('visit-link');
+          if (visitLink) {
+            visitLink.style.display = 'none';
+          }
         }
       }
-    }
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>

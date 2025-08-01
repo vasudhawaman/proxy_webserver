@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const menuBtn = document.getElementById("menu-btn");
-  const navLinks = document.getElementById("nav-links");
   const proxyToggle = document.getElementById('proxy-toggle');
   const parserToggleBtn = document.getElementById('parser-toggle');
   const urlInput = document.getElementById('urlInput');
@@ -8,25 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const feedbackBtn = document.getElementById('get-feedback-btn');
   const feedbackListEl = document.getElementById('feedback-list');
 
-  // Toggle nav on button click
-  menuBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    navLinks.classList.toggle("open");
-  });
-
-  // Close menu on clicking outside
-  document.addEventListener("click", (e) => {
-    if (!navLinks.contains(e.target)) {
-      navLinks.classList.remove("open");
-    }
-  });
-
-  // Close menu when clicking a link
-  navLinks.querySelectorAll("a").forEach(link => {
-    link.addEventListener("click", () => {
-      navLinks.classList.remove("open");
-    });
-  });
+  
   // Initialize parser toggle state
   chrome.storage.local.get('isParserActive', ({ isParserActive }) => {
     parserToggleBtn.checked = isParserActive === true;
@@ -131,5 +111,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-// add script related to UI

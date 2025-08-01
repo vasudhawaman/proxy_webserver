@@ -1,25 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proxy Setup</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proxy Setup</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
 
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-
-<body style="width: 500px;">
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <svg id="svg" version="1.0" xmlns="http://www.w3.org/2000/svg" width="32.000000pt" height="32.000000pt"
-        viewBox="0 0 32.000000 32.000000" preserveAspectRatio="xMidYMid meet">
-
-        <g transform="translate(0.000000,32.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
-          <path d="M142 313 c-6 -2 -9 -9 -6 -14 6 -10 -59 -172 -78 -196 -6 -8 -4 -10
+  <body style="width: 500px">
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <svg
+          id="svg"
+          version="1.0"
+          xmlns="http://www.w3.org/2000/svg"
+          width="32.000000pt"
+          height="32.000000pt"
+          viewBox="0 0 32.000000 32.000000"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g
+            transform="translate(0.000000,32.000000) scale(0.100000,-0.100000)"
+            fill="#000000"
+            stroke="none"
+          >
+            <path
+              d="M142 313 c-6 -2 -9 -9 -6 -14 6 -10 -59 -172 -78 -196 -6 -8 -4 -10
 9 -7 13 4 29 -7 51 -35 18 -22 32 -42 32 -45 0 -9 -34 6 -60 28 l-25 20 25
 -26 c33 -36 77 -43 117 -18 18 10 37 29 43 42 11 21 9 20 -12 -4 -25 -28 -68
 -54 -68 -41 0 5 14 26 31 47 23 26 37 36 51 33 14 -4 16 -2 10 6 -16 19 -85
@@ -30,85 +44,90 @@
 -32 35 -72z m-23 -50 c-2 -10 -8 -18 -12 -18 -4 0 -10 8 -12 18 -3 12 1 18 12
 18 11 0 15 -6 12 -18z m26 -65 c-21 -2 -55 -2 -75 0 -21 2 -4 4 37 4 41 0 58
 -2 38 -4z m12 -20 c-1 -16 -52 -65 -58 -57 -4 5 -18 21 -31 37 l-24 27 56 0
-c31 0 57 -3 57 -7z" />
-          <path d="M88 283 c-8 -10 -18 -25 -22 -33 -4 -8 0 -6 8 5 9 11 24 26 33 33 9
-6 12 12 6 12 -5 0 -17 -8 -25 -17z" />
-          <path d="M43 160 c0 -25 2 -35 4 -22 2 12 2 32 0 45 -2 12 -4 2 -4 -23z" />
-          <path d="M272 160 c0 -19 2 -27 5 -17 2 9 2 25 0 35 -3 9 -5 1 -5 -18z" />
-        </g>
-      </svg>
+c31 0 57 -3 57 -7z"
+            />
+            <path
+              d="M88 283 c-8 -10 -18 -25 -22 -33 -4 -8 0 -6 8 5 9 11 24 26 33 33 9
+6 12 12 6 12 -5 0 -17 -8 -25 -17z"
+            />
+            <path
+              d="M43 160 c0 -25 2 -35 4 -22 2 12 2 32 0 45 -2 12 -4 2 -4 -23z"
+            />
+            <path
+              d="M272 160 c0 -19 2 -27 5 -17 2 9 2 25 0 35 -3 9 -5 1 -5 -18z"
+            />
+          </g>
+        </svg>
 
-
-      <div class="logo"> THE CLOAK</div>
-    </div>
-  </nav>
-
-  <!-- Page Content -->
-  <main class="container">
-    <section id="activate_proxy">
-      <div id="box-1">
-        <div id="certificate">
-          <a href="http://localhost:3000/get-certificate" download="rootCA.crt">
-            <button class="button">
-              <i class="fas fa-download"></i> Download Certificate
-            </button>
-          </a>
-        </div>
-<!-- Proxy toggle -->
-        <div id="activate" style="margin-top: 15px;">
-          <button id="proxy-toggle" class="button">
-            <i class="fas fa-plug"></i> Activate Proxy
-          </button>
-          
-<!-- Enabling Parser -->
-          <label for="parser-toggle" style="margin-left: 25px;">
-            <input type="checkbox" id="parser-toggle" />
-            <i class="fas fa-code"></i> Enable HTML Parser?
-          </label>
-        </div>
+        <div class="logo">THE CLOAK</div>
       </div>
-    </section>
+    </nav>
 
-<!-- URL Input -->
-    <section id="urlCheck">
-      <div id="box-2">
-        <div id="manual">
-          <div class="input-group">
-            <label for="urlInput">
-              <i class="fas fa-link"></i> Enter URL to inspect:
+    <!-- Page Content -->
+    <main class="container">
+      <section id="activate_proxy">
+        <div id="box-1">
+          <!-- Proxy toggle -->
+          <div id="activate" style="margin-top: 15px">
+            <button id="proxy-toggle" class="button">
+              <i class="fas fa-plug"></i> Activate Proxy
+            </button>
+
+            <!-- Enabling Parser -->
+            <label for="parser-toggle" style="margin-left: 25px">
+              <input type="checkbox" id="parser-toggle" />
+              <i class="fas fa-code"></i> Enable HTML Parser?
             </label>
-            <input type="text" id="urlInput" placeholder="https://example.com" />
+          </div>
+        </div>
+      </section>
+
+      <!-- URL Input -->
+      <section id="urlCheck">
+        <div id="box-2">
+          <div id="manual">
+            <div class="input-group">
+              <label for="urlInput">
+                <i class="fas fa-link"></i> Enter URL to inspect:
+              </label>
+              <input
+                type="text"
+                id="urlInput"
+                placeholder="https://example.com"
+              />
+            </div>
+
+            <button id="submitUrl" class="button" style="margin-bottom: 15px">
+              <i class="fas fa-lock"></i> Check Safety
+            </button>
           </div>
 
-          <button id="submitUrl" class="button" style="margin-bottom: 15px;">
-            <i class="fas fa-lock"></i> Check Safety
-          </button>
+          <!-- Feedback -->
+          <div id="feedback">
+            <button id="get-feedback-btn" class="button">
+              <i class="fas fa-comments"></i> Get Feedback
+            </button>
+            <ul id="feedback-list"></ul>
+          </div>
         </div>
+      </section>
 
-<!-- Feedback -->
-        <div id="feedback">
-          <button id="get-feedback-btn" class="button">
-            <i class="fas fa-comments"></i> Get Feedback
-          </button>
-          <ul id="feedback-list"></ul>
+      <!-- Learn -->
+      <section id="learn">
+        <div id="box-3">
+          <div id="how-to">
+            <h4>Refer the README to learn how to operate this extension:</h4>
+            <a
+              href="https://github.com/vasudhawaman/proxy_webserver"
+              target="_blank"
+            >
+              GitHub
+            </a>
+          </div>
         </div>
-      </div>
-    </section>
-    
-<!-- Learn -->
-    <section id="learn">
-      <div id="box-3">
-        <div id="how-to">
-          <h4>Refer the README to learn how to operate this extension:</h4>
-          <a href="https://github.com/vasudhawaman/proxy_webserver" target="_blank">
-            GitHub
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
 
-  <script src="popup.js"></script>
-</body>
-
+    <script src="popup.js"></script>
+  </body>
 </html>

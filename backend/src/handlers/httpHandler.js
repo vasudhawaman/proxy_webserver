@@ -11,8 +11,8 @@ import { checkSecurityHeaders } from '../utils/securityHeaders.js';
 import { checkSSL } from '../utils/checkSsl.js';
 import { feedbackHandler } from './feedbackHandler.js';
 import { getFeedbackStatus } from '../utils/feedback.js';
-import { sendCertificate } from '../utils/sendCertificate.js';
 import { detectMaliciousHtml } from '../parser/htmlParser.js';
+import { sendLogo } from '../utils/sendLogo.js';
 
 // Exported so httpsHandler can access it
 export let isParserActive = false;
@@ -72,8 +72,8 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
     return feedbackHandler(clientReq, clientRes);
   }
 
-  if (parsedUrl.pathname === '/get-certificate' && clientReq.method === 'GET') {
-    return sendCertificate(clientReq, clientRes);
+  if (parsedUrl.pathname === '/logo' && clientReq.method === 'GET') {
+    return sendLogo(clientReq, clientRes);
   }
 
   if (parsedUrl.pathname === '/manual') {
