@@ -144,6 +144,8 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
       },
     };
 
+    // console.log(fullUrl)
+
     const serverRequestFn = protocol === 'https' ? https.request : http.request;
     const serverReq = serverRequestFn(options, async (serverRes) => {
       try {

@@ -6,21 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const feedbackBtn = document.getElementById('get-feedback-btn');
   const feedbackListEl = document.getElementById('feedback-list');
 
-   //Inserting the logo
+  //Inserting the logo
   fetch('http://localhost:3000/logo')
-  .then(response => response.blob())
-  .then(blob => {
-    const imgURL = URL.createObjectURL(blob);
-    const img = document.createElement('img');
-    img.src = imgURL;
-    img.alt = 'Logo';
-    img.style.width = '40px';
-    document.getElementById('logo-image').appendChild(img);
-  })
-  .catch(error => {
-    console.error('Error fetching logo:', error);
-  });
-  
+    .then((response) => response.blob())
+    .then((blob) => {
+      const imgURL = URL.createObjectURL(blob);
+      const img = document.createElement('img');
+      img.src = imgURL;
+      img.alt = 'Logo';
+      img.style.width = '40px';
+      document.getElementById('logo-image').appendChild(img);
+    })
+    .catch((error) => {
+      console.error('Error fetching logo:', error);
+    });
+
   // Initialize parser toggle state
   chrome.storage.local.get('isParserActive', ({ isParserActive }) => {
     parserToggleBtn.checked = isParserActive === true;
@@ -117,17 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       feedbackList.forEach(({ url, status }) => {
         const li = document.createElement('li');
-        li.style.marginLeft = "20px";
+        li.style.marginLeft = '20px';
 
         li.innerHTML = `
-    <span class="url" style="font-size: 17px;">${url}</span> &nbsp;&nbsp;&nbsp;
-    <span class="status" style="font-size: 17px;">${status}</span>
+    <span class="url" style="font-size: 17px;">${url}</span>&nbsp;&nbsp;&nbsp;->&nbsp;&nbsp;&nbsp;<span class="status" style="font-size: 17px;">${status}</span>
   `;
 
         const statusSpan = li.querySelector('.status');
         const urlSpan = li.querySelector('.url');
-        statusSpan.style.color = status === "safe" ? "green" : "red";
-        urlSpan.style.color = status === "safe" ? "green" : "red";
+        statusSpan.style.color = status === 'safe' ? 'greenyellow' : 'red';
+        // urlSpan.style.color = status === "safe" ? "greenyellow" : "red";
 
         feedbackListEl.appendChild(li);
       });

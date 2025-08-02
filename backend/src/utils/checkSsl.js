@@ -4,7 +4,7 @@ export function checkSSL(serverRes) {
   let sslDetails = {};
 
   if (!cert || Object.keys(cert).length === 0) {
-    sslTlsStatus = 'No certificate found (not a valid SSL connection)';
+    sslTlsStatus = 'No certificate found.';
   } else {
     sslDetails = {
       subject: cert.subject,

@@ -165,7 +165,7 @@
         <div id="google">
           <h1>URL Analysis Result</h1>
           <p>
-            <%= googleApiResult==='safe' ? 'No Threats Detected ✅' : 'ThreatDetected ❌' %>
+            <%= googleApiResult==='safe' ? 'No Threats Detected ✅' : 'Threats Detected ⚠️' %>
           </p>
         </div>
       </div>
@@ -197,8 +197,8 @@
 
       <div class="item">
         <div id="ssl">
-          <% if(sslTlsStatus && sslDetails) {%>
           <h1>SSL/TLS Status</h1>
+          <% if(sslTlsStatus && sslDetails) {%>
           <p><%= sslTlsStatus %></p>
 
           <% if (sslDetails && Object.keys(sslDetails).length> 0) { %>
@@ -221,7 +221,9 @@
               <%= sslDetails.valid_to %>
             </li>
           </ul>
-          <% } %> <% } %>
+          <% } %> <% } else{%>
+            NO SSL/TLS CERTIFICATE
+            <% } %>
         </div>
       </div>
 
