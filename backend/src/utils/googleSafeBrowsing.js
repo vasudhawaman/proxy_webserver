@@ -21,8 +21,6 @@ export function useGoogleAPI(targetedURL) {
     },
   });
 
-  console.log(process.env.GOOGLE_API_KEY);
-
   const options = {
     hostname: 'safebrowsing.googleapis.com',
     port: 443,
@@ -42,7 +40,6 @@ export function useGoogleAPI(targetedURL) {
       googleRes.on('end', () => {
         try {
           const result = JSON.parse(body);
-          console.log('result: ',result);
           resolve(Object.keys(result).length === 0?'safe':'unsafe');
         } catch {
           reject(new Error('Failed to parse Google API response'));
