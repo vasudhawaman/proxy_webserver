@@ -144,12 +144,11 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
       },
     };
 
-    // console.log(fullUrl)
-
+    
     const serverRequestFn = protocol === 'https' ? https.request : http.request;
     const serverReq = serverRequestFn(options, async (serverRes) => {
       try {
-        const googleApiResult = await useGoogleAPI(fullUrl);
+        const googleApiResult = await useGoogleAPI(fullUrl.replace(/\/$/, ""));
         const headersResult = checkSecurityHeaders(serverRes.headers, protocol);
         const { sslTlsStatus, sslDetails } =
           protocol === 'https' && serverRes.socket
@@ -224,7 +223,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
           !parsedUrl.query.continue &&
           getFeedbackStatus(fullUrl) === undefined
         ) {
-          const googleApiResult = await useGoogleAPI(fullUrl);
+          const googleApiResult = await useGoogleAPI(fullUrl.replace(/\/$/, ""));
           const headersResult = checkSecurityHeaders(proxyRes.headers, 'http');
 
           return renderEjs(clientRes, {
@@ -286,7 +285,7 @@ export const handleHttpRequest = async (clientReq, clientRes) => {
             clientRes.writeHead(proxyRes.statusCode, headers);
             clientRes.end(body);
           } else if (getFeedbackStatus(fullUrl) === undefined) {
-            const googleApiResult = await useGoogleAPI(url);
+            const googleApiResult = await useGoogleAPI(url.replace(/\/$/, ""));
             const headersResult = checkSecurityHeaders(
               proxyRes.headers,
               'http'

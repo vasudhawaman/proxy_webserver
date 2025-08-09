@@ -40,7 +40,7 @@ export function useGoogleAPI(targetedURL) {
       googleRes.on('end', () => {
         try {
           const result = JSON.parse(body);
-          resolve(Object.keys(result).length === 0?'safe':'unsafe');
+          resolve(Object.keys(result).length === 0 ? 'safe' : 'unsafe');
         } catch {
           reject(new Error('Failed to parse Google API response'));
         }

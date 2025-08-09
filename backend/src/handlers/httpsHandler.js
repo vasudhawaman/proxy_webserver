@@ -67,7 +67,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                 !parsedUrl.query.continue &&
                 getFeedbackStatus(fullUrl) === undefined
               ) {
-                const googleApiResult = await useGoogleAPI(fullUrl);
+                const googleApiResult = await useGoogleAPI(fullUrl.replace(/\/$/, ""));
                 const headersResult = checkSecurityHeaders(
                   proxyRes.headers,
                   'https'
@@ -142,7 +142,7 @@ export const handleHttpsConnect = (req, clientSocket, head) => {
                   httpsRes.end(body);
                 } else if (getFeedbackStatus(fullUrl) === undefined) {
                   // const { sslTlsStatus, sslDetails } = checkSSL(proxyRes);
-                  const googleApiResult = await useGoogleAPI(fullUrl);
+                  const googleApiResult = await useGoogleAPI(fullUrl.replace(/\/$/, ""));
                   const headersResult = checkSecurityHeaders(
                     proxyRes.headers,
                     'https'
